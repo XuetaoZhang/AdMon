@@ -1,0 +1,27 @@
+{
+  "name": "@admon/moss-protocol",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "sync:abi": "node scripts/sync-abi.mjs",
+    "build": "npm run sync:abi && tsup src/index.ts --format esm --dts --sourcemap --clean --target es2022",
+    "test": "npm run sync:abi && vitest run",
+    "typecheck": "npm run sync:abi && tsc --noEmit"
+  },
+  "dependencies": {
+    "@themoss/core": "file:../vendor/moss-core",
+    "viem": "^2.54.3"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.1",
+    "typescript": "~5.9.0",
+    "vitest": "^3.2.6"
+  }
+}

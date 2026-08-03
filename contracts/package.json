@@ -1,0 +1,17 @@
+{
+  "name": "@admon/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "hardhat compile",
+    "test": "hardhat test",
+    "probe:local": "hardhat run scripts/local-probe.cjs",
+    "deploy:testnet": "hardhat run scripts/deploy.cjs --network monadTestnet"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ethers": "^3.1.0",
+    "@openzeppelin/contracts": "^5.4.0",
+    "ethers": "^6.15.0",
+    "hardhat": "^2.26.3"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "admon",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Transparent advertising and click settlement for AI agent publishers on Monad",
+  "workspaces": [
+    "contracts",
+    "web",
+    "mcp-server",
+    "vendor/moss-core",
+    "moss-adapter"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace contracts && npm run build --workspace web && npm run build --workspace mcp-server && npm run build --workspace @themoss/core && npm run build --workspace @admon/moss-protocol",
+    "test": "npm run build --workspace @themoss/core && npm run test --workspace contracts && npm run test --workspace web && npm run test --workspace mcp-server && npm run test --workspace @themoss/core && npm run test --workspace @admon/moss-protocol",
+    "test:contracts": "npm run test --workspace contracts"
+  }
+}

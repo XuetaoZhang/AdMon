@@ -1,0 +1,23 @@
+{
+  "name": "@admon/mcp-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "admon-mcp": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsup src/cli.ts --format esm --dts --sourcemap --clean --target node22",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22.18.1",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}

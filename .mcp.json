@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "admon": {
+      "command": "node",
+      "args": ["mcp-server/dist/cli.js"],
+      "env": {
+        "ADMON_API_URL": "http://127.0.0.1:3000"
+      }
+    }
+  }
+}
