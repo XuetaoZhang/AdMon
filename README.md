@@ -6,6 +6,8 @@ An agent publisher integrates the AdMon decision API and card renderer into a us
 
 The hackathon MVP is deliberately limited to fixed-price campaigns and verified click receipts. It does not implement onchain ad auctions, arbitrary third-party hosts, or production-grade anti-fraud.
 
+![AdMon reference agent with a transparent sponsored card and verified Monad testnet proof](docs/assets/admon-demo-desktop.png)
+
 - Product requirements: [docs/PRD.md](docs/PRD.md)
 - Demo script: [docs/DEMO.md](docs/DEMO.md)
 
@@ -48,6 +50,12 @@ The host receives `get_ad_offer` and `get_click_status`. Tool invocation and cus
 
 ## Live deployment status
 
-Target network: Monad testnet (`chainId 10143`). Live deployment is not yet complete because this workspace has no funded deployment wallet. Moss itself currently targets Monad mainnet, so the adapter is validated against the current Moss Capability/Receipt API offline; live Moss simulation waits for a verified compatible deployment.
+AdMon is deployed on Monad testnet (`chainId 10143`) at [`0xA423ce5FE84554217554Af834C921269c1aaef38`](https://testnet.monadvision.com/address/0xA423ce5FE84554217554Af834C921269c1aaef38). The successful Safe execution transaction is [`0xa45be5f4...640e06`](https://testnet.monadvision.com/tx/0xa45be5f472adea00e2f59d00d24450a55cdcbc2ecb03155dc53460a6e0640e06), mined in block `50533513`.
+
+The contract owner and protocol treasury are the 2-of-3 Safe at `0x719d34102D3c79C588f6C4BA3147cF10d00E4371`; the configured relayer is `0xd7B64D086B397d25368B2CD3db4BBb389c494DB5`. These values and the deployed bytecode have been read back from the testnet RPC. The source is verified with a perfect match on MonadVision and is also verified on Monadscan.
+
+The live risk probe is complete: campaign creation [`0x0aa98d22...4d42cb`](https://testnet.monadscan.com/tx/0x0aa98d220fdbb1c883f3314e30e826fab5f226b8b8d51b818d24baa0094d42cb), click settlement [`0x0ad357b8...25805a`](https://testnet.monadscan.com/tx/0x0ad357b8a27c0797eb2768050dc4d1c0bddb3678e2f919b09fe0145c3425805a), and user claim [`0x15cd6072...f7c146`](https://testnet.monadscan.com/tx/0x15cd6072eefb56a40aaf4986f08b1eafb6c0bbc1a711d1498188550213f7c146) all finalized. Replaying the same click ID through `eth_call` reverts with `ClickAlreadyUsed(bytes32)`. The reference UI independently reads those receipts, `usedClick`, the cleared claimable balance, and Monad's `finalized` block tag. Its resettable click interaction remains clearly labeled as a deterministic local fixture.
+
+Moss itself currently targets Monad mainnet, so the adapter is validated against the current Moss Capability/Receipt API offline; live Moss simulation waits for a compatible mainnet deployment.
 
 The repository has also been verified from a clean copy without `node_modules`, `dist`, `.next`, contract cache, or artifacts using `npm ci && npm run build`. Root scripts build the vendored current Moss core before the AdMon adapter, so a fresh clone does not depend on generated declarations left on the developer machine.

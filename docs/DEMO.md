@@ -1,13 +1,13 @@
 # AdMon 60-Second Demo
 
-Until a verified testnet deployment exists, the reference host must keep the `Local probe` and `Simulated source` labels visible. Do not narrate its deterministic transaction hash as a Monad explorer transaction.
+AdMon is deployed and its create-campaign, click-settlement, claim, and replay-rejection probes have passed on Monad testnet at `0xA423ce5FE84554217554Af834C921269c1aaef38`. The reference host keeps its resettable interaction labeled `Local probe` / `Simulated source`, while the separate `Monad testnet proof` band reads finalized public-chain evidence. Do not narrate an interactive fixture hash as an explorer transaction.
 
 ## Setup
 
-- One pre-funded advertiser campaign in each of the three topics.
-- One registered user wallet with a claimable balance of zero.
-- A controlled advertiser landing page.
-- A visible Monad RPC/WebSocket connection and a fallback recording.
+- The reference host running with network access to Monad testnet RPC.
+- The fixed demo reward wallet shown in the host.
+- The controlled advertiser landing page and a reset local click store.
+- Monadscan links for the finalized settlement and claim transactions.
 
 ## Script
 
@@ -17,28 +17,33 @@ Show the Moss-powered reference agent preparing an unsigned onchain-action previ
 
 **08-18 seconds**
 
-Show the Sponsored Source card: sponsor name, destination domain, `Sponsored` label, match reason, reward, and the dismiss action.
+Send the example prompt, then show that Moss returns a neutral unsigned-action preview before the separate Sponsored card appears. Point out the sponsor, destination, match reason, reward split, and dismiss action.
 
 **18-30 seconds**
 
-Click the card. The controlled redirect opens the landing page once. Return to the agent UI and show `Click recorded` followed by a real Monad transaction hash.
+Click `Visit sponsor`. The controlled redirect opens the landing page once. Return to the agent UI and show the local timeline move from `Click recorded` to `Reward finalized`.
 
 **30-40 seconds**
 
-Show the reward transition from Proposed to Finalized, then show the exact `claimable MON` balance.
+Show the `0.0025 MON` claimable fixture balance, then explicitly point to the separate `Monad testnet proof: Verified` band.
 
 **40-48 seconds**
 
-Click `Claim reward` and show the testnet MON transaction.
+Open the public settlement and claim links from the proof band. Show that the click is consumed, the claimable balance is cleared, and the claim block is behind Monad's finalized block.
 
 **48-56 seconds**
 
-Switch to the load dashboard: 64 labeled test agents, 8 campaigns, 16 shards, real transaction hashes, finalized count, and gas-limit cost.
+Return to the reference host and click `Claim reward` to complete the resettable interactive flow. Keep the `Simulated source` label visible.
 
 **56-60 seconds**
 
-Attempt the same click URL again. Show `Already settled` and no additional reward.
+Open the same signed click URL again and show the one-time redirect rejection. End on the public proof links and the 25% / 60% / 15% split.
 
 ## Closing line
 
 Agent recommendations do not need hidden advertising. AdMon makes the advertiser, the click, the payout, and the Monad settlement visible to everyone.
+
+## Backup evidence
+
+- [Desktop reference host with Sponsored card and testnet proof](assets/admon-demo-desktop.png)
+- [Narrow-screen testnet proof layout](assets/admon-proof-mobile.png)

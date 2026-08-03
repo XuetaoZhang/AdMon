@@ -8,6 +8,7 @@ import {
   ExternalLink,
   LoaderCircle,
   MousePointerClick,
+  RadioTower,
   RefreshCw,
   Send,
   ShieldCheck,
@@ -17,7 +18,7 @@ import {
   X
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import type { AgentResponse, ClickStatus } from "@/lib/ad-types";
+import type { AgentResponse, ClickStatus, LiveProof } from "@/lib/ad-types";
 
 const promptOptions = [
   "Swap exactly 0.1 MON for USDC. Simulate first and do not send.",
@@ -42,11 +43,31 @@ export function AdMonConsole() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [dismissed, setDismissed] = useState(false);
+  const [liveProof, setLiveProof] = useState<LiveProof | null>(null);
+  const [liveProofUnavailable, setLiveProofUnavailable] = useState(false);
 
   const shortWallet = useMemo(
     () => `${wallet.slice(0, 6)}…${wallet.slice(-4)}`,
     [wallet]
   );
+
+  useEffect(() => {
+    let active = true;
+    async function loadLiveProof() {
+      try {
+        const result = await fetch("/api/live-proof", { cache: "no-store" });
+        if (!result.ok) throw new Error("Live proof unavailable.");
+        const body = (await result.json()) as LiveProof;
+        if (active) setLiveProof(body);
+      } catch {
+        if (active) setLiveProofUnavailable(true);
+      }
+    }
+    void loadLiveProof();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (
@@ -282,6 +303,44 @@ export function AdMonConsole() {
             <span>{status.mode === "local-probe" ? "Simulated source" : "Onchain"}</span>
           </div>
 
+          <section className="live-proof-band" aria-live="polite">
+            <div className="live-proof-title">
+              <span><RadioTower size={14} /> Monad testnet proof</span>
+              <strong>
+                {liveProof ? "Verified" : liveProofUnavailable ? "Unavailable" : "Checking"}
+              </strong>
+            </div>
+            {liveProof ? (
+              <>
+                <p>
+                  Click used · claim cleared · finalized at block {liveProof.finalizedBlockNumber}
+                </p>
+                <div className="live-proof-links">
+                  <a
+                    href={`https://testnet.monadscan.com/tx/${liveProof.settlementTransactionHash}`}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    Settlement <ExternalLink size={12} />
+                  </a>
+                  <a
+                    href={`https://testnet.monadscan.com/tx/${liveProof.claimTransactionHash}`}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    Claim <ExternalLink size={12} />
+                  </a>
+                </div>
+              </>
+            ) : (
+              <p>
+                {liveProofUnavailable
+                  ? "RPC proof is offline; local interaction remains available."
+                  : "Reading finalized chain state."}
+              </p>
+            )}
+          </section>
+
           <ol className="timeline">
             {[
               ["ready", "Offer issued"],
@@ -361,7 +420,7 @@ export function AdMonConsole() {
             <ArrowUpRight size={15} />
           </a>
           <p className="mode-note">
-            The action and settlement values are deterministic fixtures. Live Moss simulation and finalized Monad reads replace them after deployment.
+            Interactive click values are deterministic fixtures. The testnet proof above is read independently from finalized Monad state.
           </p>
         </aside>
       </div>
