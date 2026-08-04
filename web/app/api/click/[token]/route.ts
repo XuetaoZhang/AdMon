@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { submitSettlement } from "@/lib/chain-relayer";
-import { recordClick } from "@/lib/click-store";
-import { markSettlementError, markSettlementSubmitted } from "@/lib/click-store";
+import {
+  getClickStatus,
+  markSettlementError,
+  markSettlementSubmitted,
+  recordClick,
+  resetClick
+} from "@/lib/click-store";
 import { verifyClickToken } from "@/lib/click-token";
 
 export async function GET(
@@ -14,6 +19,11 @@ export async function GET(
     return new NextResponse("This AdMon click link is invalid or expired.", {
       status: 410
     });
+  }
+
+  const existing = getClickStatus(payload.clickId);
+  if (existing.chainError && existing.mode === "session-preview") {
+    resetClick(payload.clickId);
   }
 
   const click = recordClick(payload.clickId, {

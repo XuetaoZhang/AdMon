@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   claimClick,
   getClickStatus,
+  markSettlementError,
   markSettlementSubmitted,
   recordClick,
   resetClick
@@ -51,5 +52,14 @@ describe("session click settlement state machine", () => {
 
     vi.advanceTimersByTime(5_000);
     expect(getClickStatus(clickId).state).toBe("proposed");
+  });
+
+  it("allows a signed click to retry after a pre-settlement configuration failure", () => {
+    expect(recordClick(clickId)).not.toBeNull();
+    expect(markSettlementError(clickId, "AdMon relayer is not configured.")?.chainError).toContain(
+      "not configured"
+    );
+    resetClick(clickId);
+    expect(recordClick(clickId)).not.toBeNull();
   });
 });

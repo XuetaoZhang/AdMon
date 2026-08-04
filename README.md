@@ -51,7 +51,7 @@ The standalone host receives `get_ad_offer` and `get_click_status`. Tool invocat
 ### Runtime settlement configuration
 
 The relayer signs settlement transactions from an encrypted keystore. Keep the
-keystore outside the repository and set these values in `.env.local`:
+keystore outside the repository and set these values in `web/.env.local`:
 
 ```bash
 ADMON_RELAYER_KEYSTORE_PATH=/absolute/path/to/keystore-file
