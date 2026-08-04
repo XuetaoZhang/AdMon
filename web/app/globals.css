@@ -192,10 +192,11 @@ input:focus-visible {
 }
 
 .wallet-control {
-  width: 245px;
+  width: 340px;
   height: 38px;
   padding: 0 10px;
   gap: 8px;
+  position: relative;
   border: 1px solid var(--line);
   border-radius: 4px;
   background: var(--surface);
@@ -204,20 +205,31 @@ input:focus-visible {
 .wallet-control input {
   min-width: 0;
   width: 100%;
+  padding: 0;
   border: 0;
   outline: 0;
-  color: transparent;
-  caret-color: var(--ink);
+  color: var(--ink);
   background: transparent;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.wallet-control span {
-  position: absolute;
-  margin-left: 26px;
-  pointer-events: none;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 12px;
+.wallet-connect {
+  flex: 0 0 auto;
+  min-height: 26px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  color: var(--green);
+  background: var(--green-soft);
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 800;
 }
+
+.wallet-connect:hover { border-color: var(--green); }
 
 .quick-prompts {
   display: flex;

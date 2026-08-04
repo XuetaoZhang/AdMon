@@ -29,7 +29,7 @@ npm run build
 npm run dev --workspace web
 ```
 
-Open `http://localhost:3000`. Session activity is isolated from live balances, while the proof band independently verifies finalized Monad testnet transactions.
+Open `http://localhost:3000`. The reference publisher host calls the same MCP offer tool used by external agent hosts. With a configured relayer, each signed click is submitted to the Monad testnet contract; without one, the UI keeps the activity explicitly marked as a session preview.
 
 Run the local contract verification:
 
@@ -46,13 +46,29 @@ npm run build --workspace mcp-server
 npm run dev --workspace web
 ```
 
-The host receives `get_ad_offer` and `get_click_status`. Tool invocation and custom visual card rendering remain host-controlled; the MCP always includes a Markdown fallback.
+The standalone host receives `get_ad_offer` and `get_click_status`. Tool invocation and custom visual card rendering remain host-controlled; the MCP always includes a Markdown fallback. The web publisher includes an in-memory MCP client/server pair so the reference page exercises the same structured tool boundary.
+
+### Runtime settlement configuration
+
+The relayer signs settlement transactions from an encrypted keystore. Keep the
+keystore outside the repository and set these values in `.env.local`:
+
+```bash
+ADMON_RELAYER_KEYSTORE_PATH=/absolute/path/to/keystore-file
+ADMON_RELAYER_KEYSTORE_PASSWORD=
+ADMON_CHAIN_SETTLEMENT_REQUIRED=true
+```
+
+`ADMON_CHAIN_SETTLEMENT_REQUIRED=true` makes a click fail closed when the relayer
+is unavailable or the campaign cannot be settled. The claim action is always
+signed by the user's connected wallet on Monad testnet; AdMon never receives that
+private key.
 
 ## Network deployment
 
 AdMon is deployed on Monad testnet (`chainId 10143`) at [`0xA423ce5FE84554217554Af834C921269c1aaef38`](https://testnet.monadvision.com/address/0xA423ce5FE84554217554Af834C921269c1aaef38). The successful Safe execution transaction is [`0xa45be5f4...640e06`](https://testnet.monadvision.com/tx/0xa45be5f472adea00e2f59d00d24450a55cdcbc2ecb03155dc53460a6e0640e06), mined in block `50533513`.
 
-The contract owner and protocol treasury are the 2-of-3 Safe at `0x719d34102D3c79C588f6C4BA3147cF10d00E4371`; the configured relayer is `0xd7B64D086B397d25368B2CD3db4BBb389c494DB5`. These values and the deployed bytecode have been read back from the testnet RPC. The source is verified with a perfect match on MonadVision and is also verified on Monadscan.
+The contract owner and protocol treasury are the 2-of-3 Safe at `0x719d34102D3c79C588f6C4BA3147cF10d00E4371`; the deployed relayer is recorded in [`contracts/deployments/10143.json`](contracts/deployments/10143.json). These values and the deployed bytecode have been read back from the testnet RPC. The source is verified with a perfect match on MonadVision and is also verified on Monadscan.
 
 Campaign creation [`0x0aa98d22...4d42cb`](https://testnet.monadscan.com/tx/0x0aa98d220fdbb1c883f3314e30e826fab5f226b8b8d51b818d24baa0094d42cb), click settlement [`0x0ad357b8...25805a`](https://testnet.monadscan.com/tx/0x0ad357b8a27c0797eb2768050dc4d1c0bddb3678e2f919b09fe0145c3425805a), and user claim [`0x15cd6072...f7c146`](https://testnet.monadscan.com/tx/0x15cd6072eefb56a40aaf4986f08b1eafb6c0bbc1a711d1498188550213f7c146) are finalized. Replaying the same click ID through `eth_call` reverts with `ClickAlreadyUsed(bytes32)`. The application independently reads those receipts, `usedClick`, the cleared claimable balance, and Monad's `finalized` block tag. Resettable session activity stays isolated from live balances.
 

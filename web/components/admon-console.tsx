@@ -17,7 +17,7 @@ import {
   WalletCards,
   X
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { AgentResponse, ClickStatus, LiveProof } from "@/lib/ad-types";
 
 const promptOptions = [
@@ -27,6 +27,19 @@ const promptOptions = [
 ];
 
 const defaultWallet = "0x1111111111111111111111111111111111111111";
+const monadTestnetChainId = "0x279f";
+
+type EthereumProvider = {
+  request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
+  on?: (event: string, listener: (...args: unknown[]) => void) => void;
+  removeListener?: (event: string, listener: (...args: unknown[]) => void) => void;
+};
+
+declare global {
+  interface Window {
+    ethereum?: EthereumProvider;
+  }
+}
 
 const initialStatus: ClickStatus = {
   clickId: "",
@@ -45,11 +58,57 @@ export function AdMonConsole() {
   const [dismissed, setDismissed] = useState(false);
   const [liveProof, setLiveProof] = useState<LiveProof | null>(null);
   const [liveProofUnavailable, setLiveProofUnavailable] = useState(false);
+  const [walletConnected, setWalletConnected] = useState(false);
+  const [claimSubmitting, setClaimSubmitting] = useState(false);
 
-  const shortWallet = useMemo(
-    () => `${wallet.slice(0, 6)}…${wallet.slice(-4)}`,
-    [wallet]
-  );
+  async function switchToMonadTestnet(provider: EthereumProvider): Promise<void> {
+    const chainId = await provider.request({ method: "eth_chainId" });
+    if (String(chainId).toLowerCase() === monadTestnetChainId) return;
+    try {
+      await provider.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: monadTestnetChainId }]
+      });
+    } catch (switchError) {
+      const code = (switchError as { code?: number }).code;
+      if (code !== 4902) throw new Error("Switch the connected wallet to Monad testnet to continue.");
+      await provider.request({
+        method: "wallet_addEthereumChain",
+        params: [
+          {
+            chainId: monadTestnetChainId,
+            chainName: "Monad Testnet",
+            nativeCurrency: { name: "MON", symbol: "MON", decimals: 18 },
+            rpcUrls: ["https://testnet-rpc.monad.xyz"],
+            blockExplorerUrls: ["https://testnet.monadscan.com"]
+          }
+        ]
+      });
+    }
+  }
+
+  async function connectWallet() {
+    const provider = window.ethereum;
+    if (!provider) {
+      setError("A browser wallet is required to claim MON. Install a wallet, then reconnect.");
+      return;
+    }
+    try {
+      const accounts = (await provider.request({ method: "eth_requestAccounts" })) as string[];
+      const account = accounts[0];
+      if (!account) throw new Error("The wallet did not return an account.");
+      await switchToMonadTestnet(provider);
+      if (response && account.toLowerCase() !== wallet.toLowerCase()) {
+        throw new Error("This wallet does not match the reward address used for this offer. Run the request again with this wallet.");
+      }
+      setWallet(account);
+      setWalletConnected(true);
+      setError("");
+    } catch (requestError) {
+      setWalletConnected(false);
+      setError(requestError instanceof Error ? requestError.message : "Wallet connection failed.");
+    }
+  }
 
   useEffect(() => {
     let active = true;
@@ -105,14 +164,56 @@ export function AdMonConsole() {
 
   async function claimReward() {
     if (!response) return;
-    const result = await fetch("/api/claim", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ clickId: response.offer.clickId })
-    });
-    const body = await result.json();
-    if (result.ok) setStatus(body);
-    else setError(body.error);
+    const provider = window.ethereum;
+    if (!provider) {
+      setError("A browser wallet is required to claim MON. Install a wallet, then reconnect.");
+      return;
+    }
+    setClaimSubmitting(true);
+    setError("");
+    try {
+      const accounts = (await provider.request({ method: "eth_requestAccounts" })) as string[];
+      const account = accounts[0];
+      if (!account || account.toLowerCase() !== wallet.toLowerCase()) {
+        throw new Error("Connect the wallet that owns this reward address before claiming.");
+      }
+      await switchToMonadTestnet(provider);
+      const prepare = await fetch("/api/claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clickId: response.offer.clickId, userAddress: account })
+      });
+      const prepared = await prepare.json();
+      if (!prepare.ok) throw new Error(prepared.error || "The reward is not ready to claim.");
+      const gasLimit = BigInt(prepared.transaction.gasLimit).toString(16);
+      const transactionHash = (await provider.request({
+        method: "eth_sendTransaction",
+        params: [
+          {
+            from: account,
+            to: prepared.transaction.to,
+            data: prepared.transaction.data,
+            gas: `0x${gasLimit}`
+          }
+        ]
+      })) as string;
+      const submitted = await fetch("/api/claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clickId: response.offer.clickId,
+          userAddress: account,
+          claimTransactionHash: transactionHash
+        })
+      });
+      const submittedBody = await submitted.json();
+      if (!submitted.ok) throw new Error(submittedBody.error || "The claim transaction could not be recorded.");
+      setStatus(submittedBody);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "Claim failed.");
+    } finally {
+      setClaimSubmitting(false);
+    }
   }
 
   async function resetSession() {
@@ -125,6 +226,7 @@ export function AdMonConsole() {
     }
     setResponse(null);
     setStatus(initialStatus);
+    setWalletConnected(false);
     setDismissed(false);
     setError("");
   }
@@ -164,7 +266,9 @@ export function AdMonConsole() {
                 spellCheck={false}
                 value={wallet}
               />
-              <span>{shortWallet}</span>
+              <button className="wallet-connect" onClick={() => void connectWallet()} type="button">
+                {walletConnected ? "Connected" : "Connect"}
+              </button>
             </div>
           </div>
 
@@ -274,6 +378,7 @@ export function AdMonConsole() {
           </div>
 
           {error ? <p className="error-banner">{error}</p> : null}
+          {status.chainError ? <p className="error-banner">Settlement status: {status.chainError}</p> : null}
 
           <form
             className="composer"
@@ -403,14 +508,14 @@ export function AdMonConsole() {
             <span>Claimable reward</span>
             <strong>{status.state === "claimed" ? "0" : status.claimableMon} MON</strong>
             <button
-              disabled={status.state !== "finalized"}
+              disabled={status.state !== "finalized" || claimSubmitting}
               onClick={() => void claimReward()}
               type="button"
             >
               {status.state === "claimed" ? (
                 <><Check size={16} /> Claimed</>
               ) : (
-                <><MousePointerClick size={16} /> Claim reward</>
+                <><MousePointerClick size={16} /> {claimSubmitting ? "Waiting for wallet" : "Claim reward"}</>
               )}
             </button>
           </div>

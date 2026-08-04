@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   claimClick,
   getClickStatus,
+  markSettlementSubmitted,
   recordClick,
   resetClick
 } from "./click-store";
@@ -37,5 +38,18 @@ describe("session click settlement state machine", () => {
   it("rejects a replay of the same click ID", () => {
     expect(recordClick(clickId)).not.toBeNull();
     expect(recordClick(clickId)).toBeNull();
+  });
+
+  it("does not replace an onchain state with the session timer", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-03T10:00:00.000Z"));
+    expect(recordClick(clickId)).not.toBeNull();
+    expect(markSettlementSubmitted(clickId, `0x${"ef".repeat(32)}`)).toMatchObject({
+      mode: "monad-testnet",
+      state: "proposed"
+    });
+
+    vi.advanceTimersByTime(5_000);
+    expect(getClickStatus(clickId).state).toBe("proposed");
   });
 });

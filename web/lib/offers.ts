@@ -3,7 +3,8 @@ import type { AdOffer, TopicId } from "@/lib/ad-types";
 import { signClickToken } from "@/lib/click-token";
 
 const publisherAddress =
-  "0x2222222222222222222222222222222222222222";
+  process.env.ADMON_PUBLISHER_ADDRESS ||
+  "0x719d34102D3c79C588f6C4BA3147cF10d00E4371";
 
 const campaigns: Record<
   TopicId,
@@ -17,7 +18,7 @@ const campaigns: Record<
   >
 > = {
   "onchain-actions": {
-    campaignId: 101,
+    campaignId: 1,
     advertiser: "Kuru",
     title: "Compare a Monad-native liquidity venue",
     description:
@@ -30,7 +31,7 @@ const campaigns: Record<
     environment: "monad-testnet"
   },
   "monad-infra": {
-    campaignId: 102,
+    campaignId: 1,
     advertiser: "FastLane RPC",
     title: "Production RPC for latency-sensitive Monad apps",
     description:
@@ -43,7 +44,7 @@ const campaigns: Record<
     environment: "monad-testnet"
   },
   wallets: {
-    campaignId: 103,
+    campaignId: 1,
     advertiser: "ClearSign Wallet",
     title: "Review intent before your Monad transaction is signed",
     description:

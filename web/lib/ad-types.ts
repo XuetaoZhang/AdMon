@@ -21,6 +21,7 @@ export type AdOffer = {
 export type AgentResponse = {
   prompt: string;
   topicId: TopicId;
+  adSource: "mcp:get_ad_offer";
   answer: {
     heading: string;
     summary: string;
@@ -35,9 +36,14 @@ export type ClickStatus = {
   state: "ready" | "recorded" | "proposed" | "finalized" | "claimed";
   recordedAt?: string;
   transactionHash?: `0x${string}`;
+  claimTransactionHash?: `0x${string}`;
   blockNumber?: number;
   claimableMon: string;
   mode: "session-preview" | "monad-testnet";
+  userAddress?: `0x${string}`;
+  publisherAddress?: `0x${string}`;
+  campaignId?: number;
+  chainError?: string;
 };
 
 export type LiveProof = {

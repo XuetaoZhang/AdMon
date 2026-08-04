@@ -32,8 +32,8 @@ export default async function SponsorPage({
           <code>{clickId ? `${clickId.slice(0, 14)}…${clickId.slice(-8)}` : "Unavailable"}</code>
         </div>
         <p className="probe-disclosure">
-          Local risk-probe mode. The production redirect will submit this receipt to
-          the deployed Monad settlement contract before redirecting.
+          This one-time redirect validates the signed receipt before returning to the
+          publisher. The publisher tracks Monad finality separately from this destination.
         </p>
       </section>
     </main>

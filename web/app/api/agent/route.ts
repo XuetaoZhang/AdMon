@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { getOfferThroughMcp } from "@/lib/embedded-mcp";
 import { answerForTopic, classifyTopic } from "@/lib/topics";
-import { createOffer } from "@/lib/offers";
 
 const requestSchema = z.object({
   prompt: z.string().trim().min(3).max(500),
@@ -19,10 +19,16 @@ export async function POST(request: Request) {
 
   const topicId = classifyTopic(parsed.data.prompt);
   const origin = new URL(request.url).origin;
+  const offer = await getOfferThroughMcp(
+    topicId,
+    parsed.data.userAddress,
+    origin
+  );
   return NextResponse.json({
     prompt: parsed.data.prompt,
     topicId,
     answer: answerForTopic(topicId),
-    offer: createOffer(topicId, parsed.data.userAddress, origin)
+    offer,
+    adSource: "mcp:get_ad_offer"
   });
 }
