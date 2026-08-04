@@ -13,17 +13,15 @@ export async function GET(
       const chain = await readSettlement(
         status.transactionHash,
         clickId as `0x${string}`,
-        status.userAddress,
-        status.claimTransactionHash
+        status.userAddress
       );
       updateOnchainStatus(clickId, chain);
       return NextResponse.json(getClickStatus(clickId));
     } catch (error) {
       updateOnchainStatus(clickId, {
         state: status.state,
-        claimableMon: status.claimableMon,
+        paidMon: status.paidMon,
         blockNumber: status.blockNumber,
-        claimTransactionHash: status.claimTransactionHash,
         chainError: error instanceof Error ? error.message : "Monad status unavailable."
       });
     }

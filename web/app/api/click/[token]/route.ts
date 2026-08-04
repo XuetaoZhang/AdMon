@@ -22,7 +22,7 @@ export async function GET(
   }
 
   const existing = getClickStatus(payload.clickId);
-  if (existing.chainError && existing.mode === "session-preview") {
+  if (existing.chainError) {
     resetClick(payload.clickId);
   }
 

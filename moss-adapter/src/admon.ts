@@ -1,45 +1,39 @@
 import {
   Address,
   type AddressValue,
-  Capability,
-  type Change,
   type Handle,
-  type Hex,
   type InferParams,
   type ParamsSpec,
   Protocol,
   Query,
-  Receipt,
-  type ReceiptResult
+  UnsignedIntegerString
 } from "@themoss/core";
-import { decodeEventLog, getAddress } from "viem";
+import { getAddress } from "viem";
 import { AdMonAbi } from "./abis/admon.js";
 
-// Replaced with the verified Monad deployment before the public demo.
 export const ADMON_ADDRESS: AddressValue = getAddress(
-  process.env.ADMON_CONTRACT_ADDRESS || "0x0000000000000000000000000000000000000ad0"
+  process.env.ADMON_CONTRACT_ADDRESS || "0x2501155A34E0af59a21751045abB6A9056b7e1Ab"
 );
 
-const claimableParams = {
-  account: {
-    type: Address,
-    description: "Address whose accrued AdMon click rewards are read."
+const campaignParams = {
+  campaignId: {
+    type: UnsignedIntegerString,
+    description: "AdMon campaign identifier to inspect without creating a transaction."
   }
 } satisfies ParamsSpec;
 
-const claimParams = {} satisfies ParamsSpec;
-
-type ClaimOutcome = {
-  operation: "claim";
-  account: AddressValue;
-  amount: string;
-};
+const recoveryParams = {
+  account: {
+    type: Address,
+    description: "Address whose exceptional payout-recovery balance is read."
+  }
+} satisfies ParamsSpec;
 
 @Protocol({
   name: "admon",
   category: "rewards",
   description:
-    "AdMon transparent click rewards for users and agent publishers on Monad.",
+    "Read AdMon campaign and payout state without asking the user to sign reward transactions.",
   contracts: { settlement: { abi: AdMonAbi, addr: ADMON_ADDRESS } },
   labels: { Settlement: ADMON_ADDRESS }
 })
@@ -47,90 +41,29 @@ export class AdMonProtocol {
   declare settlement: Handle<typeof AdMonAbi>;
 
   @Query({
-    intent: "Read claimable AdMon click rewards",
-    params: claimableParams,
-    tags: ["advertising", "balance"]
+    intent: "Inspect an AdMon campaign",
+    params: campaignParams,
+    tags: ["advertising", "campaign"]
   })
-  async claimable(params: InferParams<typeof claimableParams>) {
-    const amount = await this.settlement.read.claimable([params.account]);
-    return { account: params.account, amount: amount.toString(), token: "native" };
-  }
-
-  @Capability<AdMonProtocol, typeof claimParams>({
-    intent: "Claim accrued AdMon click rewards",
-    verb: "claim",
-    params: claimParams,
-    receipt: "claimReceipt",
-    // Moss currently requires at least one closed-set risk label for every write.
-    // Use the conservative label because the user spends gas to call an external
-    // contract, even though the verified reward flow transfers MON inward.
-    risk: ["fundOut"],
-    tags: ["advertising", "rewards"]
-  })
-  async claim() {
-    return [this.settlement.claim([])];
-  }
-
-  @Receipt()
-  claimReceipt(changes: readonly Change[]): ReceiptResult<ClaimOutcome> {
-    let transfer: Extract<Change, { kind: "nativeTransfer" }> | undefined;
-    let event: ClaimOutcome | undefined;
-
-    const parsed = changes.map((change) => {
-      if (change.kind === "nativeTransfer") {
-        if (transfer) throw new Error("AdMon claim emitted multiple native transfers");
-        transfer = change;
-        return {
-          kind: "change" as const,
-          change,
-          data: { operation: "nativeTransfer", value: change.value },
-          text: `Native MON Transfer: ${change.value} from ${change.from} to ${change.to}`
-        };
-      }
-
-      let decoded: ReturnType<typeof decodeEventLog<typeof AdMonAbi>>;
-      try {
-        decoded = decodeEventLog({
-          abi: AdMonAbi,
-          topics: change.topics as [Hex, ...Hex[]],
-          data: change.data,
-          strict: true
-        });
-      } catch {
-        throw new Error("Unexpected Change: unsupported AdMon event");
-      }
-      if (decoded.eventName !== "RewardClaimed" || event) {
-        throw new Error(`Unexpected Change: AdMon claim emitted ${decoded.eventName}`);
-      }
-      event = {
-        operation: "claim",
-        account: decoded.args.account,
-        amount: decoded.args.amount.toString()
-      };
-      return {
-        kind: "change" as const,
-        change,
-        data: event,
-        text: `AdMon Reward Claimed: ${event.amount} native MON by ${event.account}`
-      };
-    });
-
-    if (!transfer || !event) {
-      throw new Error("AdMon claim Receipt requires a native transfer and RewardClaimed event");
-    }
-    if (
-      event.amount !== transfer.value ||
-      event.account.toLowerCase() !== transfer.to.toLowerCase() ||
-      transfer.from.toLowerCase() !== ADMON_ADDRESS.toLowerCase()
-    ) {
-      throw new Error("AdMon claim Receipt transfer does not match RewardClaimed");
-    }
-
+  async campaign(params: InferParams<typeof campaignParams>) {
+    const result = await this.settlement.read.campaigns([BigInt(params.campaignId)]);
     return {
-      kind: "receipt",
-      outcome: event,
-      text: `AdMon Reward Claimed: ${event.amount} native MON by ${event.account}`,
-      changes: parsed
+      advertiser: result[0],
+      topicId: result[1].toString(),
+      clickRewardWei: result[2].toString(),
+      activeUntil: result[3].toString(),
+      active: result[4],
+      landingUrl: result[5]
     };
+  }
+
+  @Query({
+    intent: "Read an exceptional AdMon payout recovery balance",
+    params: recoveryParams,
+    tags: ["advertising", "recovery"]
+  })
+  async recoveryBalance(params: InferParams<typeof recoveryParams>) {
+    const amount = await this.settlement.read.pendingPayout([params.account]);
+    return { account: params.account, amountWei: amount.toString(), token: "native" };
   }
 }

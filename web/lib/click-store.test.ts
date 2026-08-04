@@ -1,39 +1,37 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
-  claimClick,
   getClickStatus,
   markSettlementError,
   markSettlementSubmitted,
   recordClick,
-  resetClick
+  resetClick,
+  updateOnchainStatus
 } from "./click-store";
 
 const clickId = `0x${"cd".repeat(32)}`;
 
-describe("session click settlement state machine", () => {
+describe("click settlement state machine", () => {
   afterEach(() => {
     resetClick(clickId);
     vi.useRealTimers();
   });
 
-  it("moves one click from recorded to proposed, finalized, and claimed", () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-08-03T10:00:00.000Z"));
-
+  it("moves one click from recorded to submitted and paid", () => {
     expect(recordClick(clickId)).toMatchObject({
       state: "recorded",
-      claimableMon: "0.0025",
-      mode: "session-preview"
+      paidMon: "0",
+      mode: "monad-testnet"
     });
-
-    vi.advanceTimersByTime(500);
-    expect(getClickStatus(clickId).state).toBe("proposed");
-
-    vi.advanceTimersByTime(1_200);
-    expect(getClickStatus(clickId).state).toBe("finalized");
-    expect(claimClick(clickId)?.state).toBe("claimed");
-    expect(getClickStatus(clickId).state).toBe("claimed");
-    expect(claimClick(clickId)).toBeNull();
+    expect(markSettlementSubmitted(clickId, `0x${"ef".repeat(32)}`)?.state).toBe(
+      "proposed"
+    );
+    expect(
+      updateOnchainStatus(clickId, {
+        state: "paid",
+        paidMon: "0.0025",
+        blockNumber: 123
+      })
+    ).toMatchObject({ state: "paid", paidMon: "0.0025", blockNumber: 123 });
   });
 
   it("rejects a replay of the same click ID", () => {
@@ -41,16 +39,12 @@ describe("session click settlement state machine", () => {
     expect(recordClick(clickId)).toBeNull();
   });
 
-  it("does not replace an onchain state with the session timer", () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-08-03T10:00:00.000Z"));
+  it("keeps the submitted state until an onchain read updates it", () => {
     expect(recordClick(clickId)).not.toBeNull();
     expect(markSettlementSubmitted(clickId, `0x${"ef".repeat(32)}`)).toMatchObject({
       mode: "monad-testnet",
       state: "proposed"
     });
-
-    vi.advanceTimersByTime(5_000);
     expect(getClickStatus(clickId).state).toBe("proposed");
   });
 

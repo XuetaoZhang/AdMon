@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "build": "hardhat compile",
+    "bytecode:safe": "node scripts/safe-deployment-bytecode.cjs",
     "test": "hardhat test",
     "probe:local": "hardhat run scripts/local-probe.cjs",
     "deploy:testnet": "hardhat run scripts/deploy.cjs --network monadTestnet"

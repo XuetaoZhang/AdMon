@@ -35,12 +35,23 @@ async function main() {
       activeUntil
     );
   const settleReceipt = await settleTx.wait();
-  const userCredit = await contract.claimable(user.address);
-  assert.equal(userCredit, clickReward / 4n);
-
-  const claimTx = await contract.connect(user).claim();
-  const claimReceipt = await claimTx.wait();
-  assert.equal(await contract.claimable(user.address), 0n);
+  const userBalanceBefore = await ethers.provider.getBalance(user.address);
+  const publisherBalanceBefore = await ethers.provider.getBalance(publisher.address);
+  const secondClickId = ethers.keccak256(ethers.toUtf8Bytes("admon-local-direct-payout"));
+  const secondShardId = Number(BigInt(secondClickId) % 16n);
+  const directTx = await contract.connect(relayer).settleClick(
+    1,
+    secondShardId,
+    secondClickId,
+    user.address,
+    publisher.address,
+    activeUntil
+  );
+  const directReceipt = await directTx.wait();
+  const userPayout = (await ethers.provider.getBalance(user.address)) - userBalanceBefore;
+  const publisherPayout = (await ethers.provider.getBalance(publisher.address)) - publisherBalanceBefore;
+  assert.equal(userPayout, clickReward / 4n);
+  assert.equal(publisherPayout, (clickReward * 6n) / 10n);
 
   let replayRejected = false;
   try {
@@ -67,14 +78,13 @@ async function main() {
         campaignId: 1,
         clickId,
         shardId,
-        userCreditWei: userCredit.toString(),
-        publisherCreditWei: (
-          await contract.claimable(publisher.address)
-        ).toString(),
+        userPayoutWei: userPayout.toString(),
+        publisherPayoutWei: publisherPayout.toString(),
         settleTransactionHash: settleTx.hash,
         settleBlockNumber: settleReceipt.blockNumber,
-        claimTransactionHash: claimTx.hash,
-        claimBlockNumber: claimReceipt.blockNumber,
+        directPayoutTransactionHash: directTx.hash,
+        directPayoutBlockNumber: directReceipt.blockNumber,
+        directPayoutGasUsed: directReceipt.gasUsed.toString(),
         replayRejected
       },
       null,

@@ -24,7 +24,7 @@ contract AdMon is Ownable, ReentrancyGuard {
     error ClickAlreadyUsed(bytes32 clickId);
     error ClickExpired();
     error DirectFundingDisabled();
-    error EmptyClaim();
+    error EmptyPendingPayout();
     error InsufficientShardBudget();
     error InvalidCampaign();
     error InvalidConfiguration();
@@ -53,13 +53,18 @@ contract AdMon is Ownable, ReentrancyGuard {
         address publisher,
         uint256 clickReward
     );
-    event RewardCredited(
+    event RewardPaid(
         bytes32 indexed clickId,
         address indexed account,
         uint256 amount,
-        uint8 role
+        uint8 role,
+        bool direct
     );
-    event RewardClaimed(address indexed account, uint256 amount);
+    event PendingPayoutWithdrawn(
+        address indexed account,
+        address indexed recipient,
+        uint256 amount
+    );
     event RelayerUpdated(address indexed previousRelayer, address indexed newRelayer);
     event UnusedBudgetWithdrawn(
         uint256 indexed campaignId,
@@ -75,7 +80,7 @@ contract AdMon is Ownable, ReentrancyGuard {
     mapping(uint256 campaignId => mapping(uint8 shardId => uint256 amount))
         public shardBudget;
     mapping(bytes32 clickId => bool used) public usedClick;
-    mapping(address account => uint256 amount) public claimable;
+    mapping(address account => uint256 amount) public pendingPayout;
 
     modifier onlyRelayer() {
         if (msg.sender != relayer) revert OnlyRelayer();
@@ -156,7 +161,7 @@ contract AdMon is Ownable, ReentrancyGuard {
         address user,
         address publisher,
         uint64 expiresAt
-    ) external onlyRelayer {
+    ) external onlyRelayer nonReentrant {
         if (user == address(0)) revert InvalidRecipient();
         if (publisher == address(0)) revert InvalidPublisher();
         if (shardId >= SHARD_COUNT || shardId != uint8(uint256(clickId) % SHARD_COUNT)) {
@@ -184,10 +189,6 @@ contract AdMon is Ownable, ReentrancyGuard {
             BPS_DENOMINATOR;
         uint256 protocolShare = reward - userShare - publisherShare;
 
-        claimable[user] += userShare;
-        claimable[publisher] += publisherShare;
-        claimable[protocolTreasury] += protocolShare;
-
         emit ClickSettled(
             campaignId,
             shardId,
@@ -196,20 +197,21 @@ contract AdMon is Ownable, ReentrancyGuard {
             publisher,
             reward
         );
-        emit RewardCredited(clickId, user, userShare, 0);
-        emit RewardCredited(clickId, publisher, publisherShare, 1);
-        emit RewardCredited(clickId, protocolTreasury, protocolShare, 2);
+        _pay(clickId, user, userShare, 0);
+        _pay(clickId, publisher, publisherShare, 1);
+        _pay(clickId, protocolTreasury, protocolShare, 2);
     }
 
-    function claim() external nonReentrant {
-        uint256 amount = claimable[msg.sender];
-        if (amount == 0) revert EmptyClaim();
+    function withdrawPendingPayout(address payable recipient) external nonReentrant {
+        if (recipient == address(0)) revert InvalidRecipient();
+        uint256 amount = pendingPayout[msg.sender];
+        if (amount == 0) revert EmptyPendingPayout();
 
-        claimable[msg.sender] = 0;
-        (bool sent, ) = payable(msg.sender).call{value: amount}("");
+        pendingPayout[msg.sender] = 0;
+        (bool sent, ) = recipient.call{value: amount}("");
         if (!sent) revert NativeTransferFailed();
 
-        emit RewardClaimed(msg.sender, amount);
+        emit PendingPayoutWithdrawn(msg.sender, recipient, amount);
     }
 
     function withdrawUnusedBudget(
@@ -238,6 +240,17 @@ contract AdMon is Ownable, ReentrancyGuard {
         address previousRelayer = relayer;
         relayer = newRelayer;
         emit RelayerUpdated(previousRelayer, newRelayer);
+    }
+
+    function _pay(
+        bytes32 clickId,
+        address account,
+        uint256 amount,
+        uint8 role
+    ) private {
+        (bool sent, ) = payable(account).call{value: amount}("");
+        if (!sent) pendingPayout[account] += amount;
+        emit RewardPaid(clickId, account, amount, role, sent);
     }
 
     receive() external payable {

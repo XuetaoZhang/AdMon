@@ -26,8 +26,8 @@ export function recordClick(clickId: string, metadata: ClickMetadata = {}): Stor
     state: "recorded",
     recordedAt: new Date(recordedAtMs).toISOString(),
     recordedAtMs,
-    claimableMon: "0.0025",
-    mode: "session-preview",
+    paidMon: "0",
+    mode: "monad-testnet",
     ...metadata
   };
   clicks.set(clickId, stored);
@@ -40,7 +40,6 @@ export function markSettlementSubmitted(
 ): StoredClick | null {
   const click = clicks.get(clickId);
   if (!click) return null;
-  click.mode = "monad-testnet";
   click.state = "proposed";
   click.transactionHash = transactionHash;
   click.chainError = undefined;
@@ -54,20 +53,9 @@ export function markSettlementError(clickId: string, error: string): StoredClick
   return click;
 }
 
-export function markClaimSubmitted(
-  clickId: string,
-  transactionHash: `0x${string}`
-): StoredClick | null {
-  const click = clicks.get(clickId);
-  if (!click) return null;
-  click.claimTransactionHash = transactionHash;
-  click.state = "proposed";
-  return click;
-}
-
 export function updateOnchainStatus(
   clickId: string,
-  status: Pick<ClickStatus, "state" | "claimableMon" | "blockNumber" | "claimTransactionHash"> & {
+  status: Pick<ClickStatus, "state" | "paidMon" | "blockNumber"> & {
     chainError?: string;
   }
 ): StoredClick | null {
@@ -83,22 +71,10 @@ export function getClickStatus(clickId: string): ClickStatus {
     return {
       clickId,
       state: "ready",
-      claimableMon: "0",
-      mode: "session-preview"
+      paidMon: "0",
+      mode: "monad-testnet"
     };
   }
-
-  if (click.mode === "session-preview" && click.state !== "claimed") {
-    const age = Date.now() - click.recordedAtMs;
-    click.state = age >= 1_600 ? "finalized" : age >= 450 ? "proposed" : "recorded";
-  }
-  return click;
-}
-
-export function claimClick(clickId: string): ClickStatus | null {
-  const click = clicks.get(clickId);
-  if (!click || getClickStatus(clickId).state !== "finalized") return null;
-  click.state = "claimed";
   return click;
 }
 

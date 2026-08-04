@@ -55,7 +55,7 @@ export const AdMonAbi = [
   },
   {
     "inputs": [],
-    "name": "EmptyClaim",
+    "name": "EmptyPendingPayout",
     "type": "error"
   },
   {
@@ -260,6 +260,31 @@ export const AdMonAbi = [
       {
         "indexed": true,
         "internalType": "address",
+        "name": "account",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "recipient",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "PendingPayoutWithdrawn",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
         "name": "previousRelayer",
         "type": "address"
       },
@@ -271,25 +296,6 @@ export const AdMonAbi = [
       }
     ],
     "name": "RelayerUpdated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "RewardClaimed",
     "type": "event"
   },
   {
@@ -318,9 +324,15 @@ export const AdMonAbi = [
         "internalType": "uint8",
         "name": "role",
         "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "direct",
+        "type": "bool"
       }
     ],
-    "name": "RewardCredited",
+    "name": "RewardPaid",
     "type": "event"
   },
   {
@@ -445,32 +457,6 @@ export const AdMonAbi = [
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "claim",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
-    ],
-    "name": "claimable",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "uint32",
@@ -541,6 +527,25 @@ export const AdMonAbi = [
     "name": "pauseCampaign",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "pendingPayout",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -681,6 +686,19 @@ export const AdMonAbi = [
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address payable",
+        "name": "recipient",
+        "type": "address"
+      }
+    ],
+    "name": "withdrawPendingPayout",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {

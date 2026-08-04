@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, MousePointerClick, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, ShieldCheck, Sparkles } from "lucide-react";
 
 export default async function SponsorPage({
   searchParams
@@ -8,7 +8,6 @@ export default async function SponsorPage({
 }) {
   const params = await searchParams;
   const alreadyUsed = params.status === "already-used";
-  const clickId = typeof params.clickId === "string" ? params.clickId : "";
 
   return (
     <main className="landing-shell">
@@ -17,24 +16,20 @@ export default async function SponsorPage({
       </Link>
       <section className="landing-content">
         <div className="landing-mark" aria-hidden="true">
-          {alreadyUsed ? <ShieldCheck size={28} /> : <MousePointerClick size={28} />}
+          {alreadyUsed ? <ShieldCheck size={28} /> : <Sparkles size={28} />}
         </div>
-        <p className="eyebrow">Controlled advertiser destination</p>
-        <h1>{alreadyUsed ? "This click was already recorded" : "Click receipt recorded"}</h1>
+        <p className="eyebrow">Kuru · Monad-native liquidity</p>
+        <h1>{alreadyUsed ? "Offer already redeemed" : "Trade with speed and clarity"}</h1>
         <p className="landing-copy">
           {alreadyUsed
-            ? "The same AdMon link cannot create a second redirect receipt or reward."
-            : "This safe landing page stands in for an advertiser site. Return to the agent to watch the reward move from recorded to finalized."}
+            ? "This sponsored link has already delivered its one-time reward."
+            : "Explore a liquidity venue designed for Monad. Compare markets, inspect routes, and review every action before you sign."}
         </p>
-        <div className="receipt-line">
-          <CheckCircle2 size={16} />
-          <span>Click ID</span>
-          <code>{clickId ? `${clickId.slice(0, 14)}…${clickId.slice(-8)}` : "Unavailable"}</code>
-        </div>
-        <p className="probe-disclosure">
-          This one-time redirect validates the signed receipt before returning to the
-          publisher. The publisher tracks Monad finality separately from this destination.
-        </p>
+        {!alreadyUsed ? (
+          <a className="landing-cta" href="https://www.kuru.io" rel="noreferrer" target="_blank">
+            Explore Kuru <ArrowUpRight size={16} />
+          </a>
+        ) : null}
       </section>
     </main>
   );

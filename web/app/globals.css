@@ -153,14 +153,16 @@ input:focus-visible {
   min-height: calc(100vh - 66px);
   margin: 0 auto;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 360px;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .agent-pane {
+  width: min(980px, 100%);
+  margin: 0 auto;
   min-width: 0;
   padding: 30px 36px 24px;
   display: grid;
-  grid-template-rows: auto auto minmax(360px, 1fr) auto auto;
+  grid-template-rows: auto auto minmax(360px, 1fr) auto;
   gap: 18px;
 }
 
@@ -214,6 +216,18 @@ input:focus-visible {
   font-size: 11px;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.sr-only {
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  position: absolute;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .wallet-connect {
@@ -499,6 +513,34 @@ input:focus-visible {
   font-weight: 800;
   text-decoration: none;
 }
+
+.payout-confirmation {
+  min-height: 34px;
+  padding: 0 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #a9cdbb;
+  border-radius: 4px;
+  color: var(--green) !important;
+  background: var(--green-soft);
+  font-size: 12px !important;
+  font-weight: 800;
+}
+
+.settlement-note,
+.settlement-error {
+  margin: 0;
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-top: 1px solid #efd6aa;
+  font-size: 11px;
+}
+
+.settlement-note { color: var(--green); }
+.settlement-error { color: var(--red); }
 
 .disclosure {
   margin: 0;
@@ -877,6 +919,21 @@ input:focus-visible {
   color: #4f5953;
   font-size: 16px;
   line-height: 1.65;
+}
+
+.landing-cta {
+  width: fit-content;
+  min-height: 42px;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 4px;
+  color: #fff;
+  background: var(--green);
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
 }
 
 .receipt-line {

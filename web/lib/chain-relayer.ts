@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import {
   Contract,
   HDNodeWallet,
+  Interface,
   JsonRpcProvider,
   Wallet,
   formatEther,
@@ -11,16 +12,16 @@ import {
 const rpcUrl = process.env.MONAD_RPC_URL || "https://testnet-rpc.monad.xyz";
 const contractAddress =
   process.env.ADMON_CONTRACT_ADDRESS ||
-  "0xA423ce5FE84554217554Af834C921269c1aaef38";
+  "0x2501155A34E0af59a21751045abB6A9056b7e1Ab";
 const chainId = 10143;
 
 const abi = [
   "function relayer() view returns (address)",
   "function usedClick(bytes32) view returns (bool)",
-  "function claimable(address) view returns (uint256)",
   "function settleClick(uint256,uint8,bytes32,address,address,uint64)",
-  "function claim()"
+  "event RewardPaid(bytes32 indexed clickId,address indexed account,uint256 amount,uint8 role,bool direct)"
 ];
+const settlementInterface = new Interface(abi);
 
 const provider = new JsonRpcProvider(rpcUrl, {
   name: "monad-testnet",
@@ -72,25 +73,15 @@ export type SettlementSubmission = {
 };
 
 export type SettlementRead = {
-  state: "proposed" | "finalized" | "claimed";
-  claimableMon: string;
+  state: "proposed" | "paid";
+  paidMon: string;
   transactionHash: `0x${string}`;
   blockNumber?: number;
-  claimTransactionHash?: `0x${string}`;
   error?: string;
 };
 
 export function getChainConfig() {
   return { chainId, contractAddress, rpcUrl };
-}
-
-export function getClaimTransaction() {
-  return {
-    chainId,
-    to: contractAddress,
-    data: new Contract(contractAddress, abi).interface.encodeFunctionData("claim"),
-    gasLimit: "54397"
-  };
 }
 
 export async function submitSettlement(
@@ -132,62 +123,67 @@ export async function submitSettlement(
 export async function readSettlement(
   transactionHash: `0x${string}`,
   clickId: `0x${string}`,
-  userAddress: `0x${string}`,
-  claimTransactionHash?: `0x${string}`
+  userAddress: `0x${string}`
 ): Promise<SettlementRead> {
   const receipt = await provider.getTransactionReceipt(transactionHash);
-  if (!receipt) {
-    return {
-      state: "proposed",
-      claimableMon: "0",
-      transactionHash,
-      claimTransactionHash
-    };
-  }
+  if (!receipt) return { state: "proposed", paidMon: "0", transactionHash };
   if (receipt.status !== 1) {
     return {
       state: "proposed",
-      claimableMon: "0",
+      paidMon: "0",
       transactionHash,
       blockNumber: receipt.blockNumber,
-      claimTransactionHash,
       error: "Monad settlement transaction reverted."
     };
   }
 
   const adMon = contract(provider);
-  const [used, claimable, finalizedBlock, claimReceipt] = await Promise.all([
+  const [used, finalizedBlock] = await Promise.all([
     adMon.usedClick(clickId) as Promise<boolean>,
-    adMon.claimable(userAddress) as Promise<bigint>,
-    provider.getBlock("finalized"),
-    claimTransactionHash
-      ? provider.getTransactionReceipt(claimTransactionHash)
-      : Promise.resolve(null)
+    provider.getBlock("finalized")
   ]);
+  const userPayout = receipt.logs
+    .filter((log) => log.address.toLowerCase() === contractAddress.toLowerCase())
+    .map((log) => {
+      try {
+        return settlementInterface.parseLog(log);
+      } catch {
+        return null;
+      }
+    })
+    .find(
+      (event) =>
+        event?.name === "RewardPaid" &&
+        String(event.args.clickId).toLowerCase() === clickId.toLowerCase() &&
+        String(event.args.account).toLowerCase() === userAddress.toLowerCase() &&
+        Number(event.args.role) === 0
+    );
 
-  if (!used) {
+  if (!used || !userPayout) {
     return {
       state: "proposed",
-      claimableMon: formatEther(claimable),
+      paidMon: "0",
       transactionHash,
       blockNumber: receipt.blockNumber,
-      claimTransactionHash,
-      error: "Settlement receipt exists but the click is not marked used."
+      error: "Settlement receipt does not contain the expected user payout."
+    };
+  }
+  if (!userPayout.args.direct) {
+    return {
+      state: "proposed",
+      paidMon: "0",
+      transactionHash,
+      blockNumber: receipt.blockNumber,
+      error: "The reward wallet rejected native MON; payout moved to recovery balance."
     };
   }
 
-  const finalized = finalizedBlock?.number != null && finalizedBlock.number >= receipt.blockNumber;
-  const claimFinalized =
-    claimReceipt?.status === 1 &&
-    finalizedBlock?.number != null &&
-    finalizedBlock.number >= claimReceipt.blockNumber;
-  const state = claimFinalized || (finalized && claimable === 0n) ? "claimed" : finalized ? "finalized" : "proposed";
-
+  const finalized =
+    finalizedBlock?.number != null && finalizedBlock.number >= receipt.blockNumber;
   return {
-    state,
-    claimableMon: formatEther(claimable),
+    state: finalized ? "paid" : "proposed",
+    paidMon: finalized ? formatEther(userPayout.args.amount) : "0",
     transactionHash,
-    blockNumber: receipt.blockNumber,
-    claimTransactionHash
+    blockNumber: receipt.blockNumber
   };
 }

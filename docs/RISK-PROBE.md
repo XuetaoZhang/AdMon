@@ -1,80 +1,55 @@
 # AdMon Risk Probe
 
-## Current results (2026-08-04)
+## Contract settlement
 
-| Probe | Result | Evidence |
-| --- | --- | --- |
-| Contract deployment | Testnet pass | AdMon is deployed at `0xA423ce5FE84554217554Af834C921269c1aaef38` in transaction `0xa45be5f472adea00e2f59d00d24450a55cdcbc2ecb03155dc53460a6e0640e06`, block `50533513`. RPC reads confirm deployed code, Safe ownership/treasury, and the active relayer `0x52d1C1b8BE94150B282276c493C21E20017E38Cb`. The Safe update is transaction `0xa930ec126af82eabd95a4f7aa4c83ec2b460a227da276ec4663f21e438cacc52`, block `50760002`. MonadVision reports a perfect source match and Monadscan reports verified. |
-| Contract settlement | Testnet pass | Campaign `1` was funded with `0.16 MON` in transaction `0x0aa98d220fdbb1c883f3314e30e826fab5f226b8b8d51b818d24baa0094d42cb`. Transaction `0x0ad357b8a27c0797eb2768050dc4d1c0bddb3678e2f919b09fe0145c3425805a` finalized click `0x2822aaf4262aaf85c476efeead89497e71c13b2bf1a849943d704571fa6bf2c7`, credited `0.0025 MON` to the user, and consumed shard `7`. Claim transaction `0x15cd6072eefb56a40aaf4986f08b1eafb6c0bbc1a711d1498188550213f7c146` finalized and cleared the user's claimable balance. Replaying the click through `eth_call` reverts with selector `0x3621014b`, exactly `ClickAlreadyUsed(bytes32)`. |
-| Finality display | Live UI pass | The publisher application reads both public receipts, `usedClick`, the cleared claimable balance, and Monad's `finalized` block tag in one RPC batch. It renders `Verified` only when both transactions succeeded and the claim block is finalized. Resettable activity remains separately labeled `Session preview`. |
-| Wallet identity and gas preflight | Mitigated | The failed claim transaction `0x87d7425a8091db4b395603232e04ac99c3a186e4e8af1612d0c27ce5e2f8aaf7` established the boundary: claims must come from the rewarded wallet. The publisher now checks the connected account, prepares the claim only after finalized settlement, and submits an explicit `54,397` gas limit. Monad charges from the submitted gas limit, so the UI never relies on an inflated wallet fallback. |
-| One-time redirect | Local pass | First signed URL redirects to the controlled sponsor page; second request returns the `already-used` destination. |
-| Host card rendering | Pass | Desktop and narrow-screen checks show a distinct sponsored card and readable evidence layout with no page-level horizontal overflow. |
-| Codex MCP | Protocol pass | In-memory MCP client lists `get_ad_offer` and `get_click_status`; offer returns structured content and Markdown fallback. Live Codex host capture remains pending. |
-| Moss adapter | Offline pass | Current GitHub Moss core builds one unsigned `claim()` Capability; Receipt tests cover the MON transfer and `RewardClaimed` event in order. Live Moss simulation remains pending because Moss targets mainnet. |
-| Clean clone build | Pass | A copy excluding `node_modules`, `dist`, `.next`, contract cache, and artifacts completed `npm ci` and the root production build. The root scripts now build vendored `@themoss/core` before testing the AdMon Moss adapter. |
+1. Deploy the direct-payout `AdMon` contract with the Safe as owner and treasury and the backend signer as relayer.
+2. Create a campaign funded with native MON at `0.01 MON` per click.
+3. Record the user and publisher balances.
+4. Call `settleClick` with a fresh click ID.
+5. Confirm the same transaction increases the user balance by `0.0025 MON` and the publisher balance by `0.006 MON`.
+6. Replay the click ID and confirm `ClickAlreadyUsed(bytes32)`.
 
-The deployment and proof-band transactions above are public Monad testnet evidence. Transaction values produced by the resettable interactive timeline remain deterministic Hardhat-style fixtures and are not public Monad transactions; run `npm run probe:local --workspace contracts` to regenerate the contract-side local evidence. The UI keeps those two sources visibly separate.
+Pass condition: one backend transaction produces three direct payouts and no recipient signature.
 
-Run this probe before expanding the frontend. Its purpose is to prove the two highest-risk product paths: a one-time click can create a Monad credit, and a publisher application can render the AdMon card.
+The local probe currently passes with a direct-settlement gas use of approximately `94,753`. Monad bills from the submitted gas limit, so production submission uses simulation, estimation, and a maximum 10% buffer.
 
-## Timebox
+The direct-payout contract is verified at `0x2501155A34E0af59a21751045abB6A9056b7e1Ab`. Campaign `1` was funded with `0.16 MON` in transaction `0x1d20e3bbf27442f9dfac12840aa9ba1f63b3d2c1da272bd4775c58f084123556`; it pays `0.01 MON` per accepted click through 16 independent budget shards.
 
-Maximum 90 minutes. After two failures on the same dependency, record the error and switch to the documented fallback rather than continuing UI work.
+The reference host completed a live one-click settlement in transaction `0x5574189851ad497fbfe76e610e28287fb080e1e5141996b0f15147fb76e72b4a`. The finalized receipt contains direct payouts of `0.0025 MON` to the user, `0.006 MON` to the publisher, and `0.0015 MON` to the protocol. The contract balance fell by exactly `0.01 MON`, and no wallet signature or follow-up withdrawal was used.
 
-## Probe A: Contract settlement
+## Rejecting recipient
 
-1. Create a minimal `AdMon` contract with a single campaign and one test relayer.
-2. Deploy it to Monad testnet.
-3. Fund one campaign with native MON.
-4. Call `settleClick` using a fixed `clickId` and a registered recipient EOA.
-5. Confirm that `claimable[recipient]` increases.
-6. Call `claim` from the recipient and record the receipt, block number, and final balance.
+1. Set a recipient to a contract that rejects native MON.
+2. Settle the click and confirm publisher and protocol payouts still complete.
+3. Confirm only the failed share enters `pendingPayout`.
+4. Have the rejecting contract redirect the recovery payout to an accepting address.
 
-Pass condition: one credit and one withdrawal are both visible on Monad testnet, and submitting the same `clickId` reverts.
+Pass condition: an unusual recipient cannot block the entire settlement, while normal EOA recipients require no recovery action.
 
-Fallback: retain the successful settlement transaction as recorded evidence and keep session activity isolated until the RPC or UI issue is fixed. Do not fabricate a live payout.
+## Redirect and relayer
 
-## Probe B: Finality display
+1. Generate an expiry-bound signed redirect containing only campaign, click, user, and publisher identifiers.
+2. Open it once and confirm the advertiser destination loads.
+3. Confirm the backend submits settlement without exposing a wallet prompt.
+4. Open the link again and confirm no second settlement is submitted.
+5. Disable the relayer and confirm the redirect fails closed instead of displaying a false reward.
 
-1. Subscribe to the contract's `ClickSettled` logs through a standard WebSocket provider.
-2. Render the event as `Proposed`.
-3. Poll the receipt or read at the `finalized` block tag.
-4. Render the result as `Finalized` only after the finalized check succeeds.
+Pass condition: one valid redirect maps to at most one onchain payout.
 
-Pass condition: a single real settlement visibly transitions through both states.
+## UI
 
-Fallback: use receipt polling plus the `finalized` block tag. Do not depend on an extended Monad WebSocket API for the primary product path.
+1. Confirm the host renders ad content as a separate, labeled card.
+2. Confirm no wallet connect, settlement timeline, claim control, or transaction-debug panel appears in the consumer view.
+3. Confirm the card reports `+0.0025 MON sent` only after the settlement transaction is finalized and contains a direct user `RewardPaid` event.
+4. Confirm mobile and desktop layouts have no overlap or horizontal overflow.
 
-## Probe C: One-time redirect
-
-1. Generate a `clickId` and an expiry-bound signed redirect token.
-2. Open the URL once and confirm that the controlled landing page loads.
-3. Open it a second time and confirm an `Already used` response.
-4. Send only the campaign ID, click ID, recipient wallet, and expiry to the relayer; never send the original prompt.
-
-Pass condition: exactly one redirect and exactly one valid settlement request are created.
-
-Fallback: replace the HTTP redirect with a controlled confirmation screen that invokes the same receipt endpoint.
-
-## Probe D: Host card rendering
-
-The same MCP result can look different in different hosts. Do not make Codex CLI or Claude Code's transcript layout a primary product dependency.
-
-1. Expose a publisher decision endpoint that returns a strict `ad_offer` object with `title`, `advertiser`, `domain`, `reason`, `reward`, `clickUrl`, and `disclosure`.
-2. Call it from a useful Monad developer assistant that owns the chat UI; the end user installs nothing.
-3. Render the object as the independent AdMon card and keep the ordinary answer visually separate.
-4. Wrap the same endpoint with an optional MCP adapter, then install it in Codex CLI and Claude Code to observe their actual rendering. Treat this as an integration experiment, not a pass condition.
-5. Confirm that ad text is rendered as untrusted data and cannot add instructions or tool calls.
-
-Pass condition: the existing-use-case reference host shows a stable card with a working click URL, without requiring the user to install an advertising-only agent or a generic host to support a custom component.
-
-Fallback: return a Markdown card from the MCP and use a recorded Codex/Claude Code transcript as an interoperability appendix. The publisher application remains the canonical rendering surface.
+Pass condition: the consumer experiences a normal outbound ad click and a passive reward confirmation.
 
 ## Evidence to retain
 
-- Contract address and verified source link when deployed.
-- First settlement transaction hash.
-- First claim transaction hash.
-- Replayed click failure screenshot or test output.
-- Timestamped screenshot of Proposed and Finalized UI states.
+- Verified contract address and source link.
+- Campaign funding transaction.
+- Direct settlement transaction and decoded payout events.
+- User and publisher balance deltas.
+- Replay rejection result.
+- Desktop and mobile captures of the sponsored card and paid confirmation.

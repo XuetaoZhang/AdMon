@@ -33,29 +33,14 @@ export type AgentResponse = {
 
 export type ClickStatus = {
   clickId: string;
-  state: "ready" | "recorded" | "proposed" | "finalized" | "claimed";
+  state: "ready" | "recorded" | "proposed" | "paid";
   recordedAt?: string;
   transactionHash?: `0x${string}`;
-  claimTransactionHash?: `0x${string}`;
   blockNumber?: number;
-  claimableMon: string;
-  mode: "session-preview" | "monad-testnet";
+  paidMon: string;
+  mode: "monad-testnet";
   userAddress?: `0x${string}`;
   publisherAddress?: `0x${string}`;
   campaignId?: number;
   chainError?: string;
-};
-
-export type LiveProof = {
-  status: "verified";
-  chainId: 10143;
-  contractAddress: `0x${string}`;
-  settlementTransactionHash: `0x${string}`;
-  claimTransactionHash: `0x${string}`;
-  settlementBlockNumber: number;
-  claimBlockNumber: number;
-  finalizedBlockNumber: number;
-  clickUsed: true;
-  userClaimableWei: "0";
-  checkedAt: string;
 };

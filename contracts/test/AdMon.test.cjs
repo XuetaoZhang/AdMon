@@ -43,9 +43,13 @@ describe("AdMon", function () {
     return { clickId, shardId };
   }
 
-  it("settles one click into user, publisher, and protocol balances", async function () {
+  it("settles one click directly into user, publisher, and protocol wallets", async function () {
     const { campaignId, activeUntil } = await createCampaign();
     const { clickId, shardId } = clickForShard();
+
+    const userBefore = await ethers.provider.getBalance(user.address);
+    const publisherBefore = await ethers.provider.getBalance(publisher.address);
+    const treasuryBefore = await ethers.provider.getBalance(treasury.address);
 
     await adMon
       .connect(relayer)
@@ -59,20 +63,28 @@ describe("AdMon", function () {
       );
 
     assert.equal(await adMon.usedClick(clickId), true);
-    assert.equal(await adMon.claimable(user.address), clickReward / 4n);
     assert.equal(
-      await adMon.claimable(publisher.address),
+      await ethers.provider.getBalance(user.address) - userBefore,
+      clickReward / 4n
+    );
+    assert.equal(
+      await ethers.provider.getBalance(publisher.address) - publisherBefore,
       (clickReward * 6n) / 10n
     );
     assert.equal(
-      await adMon.claimable(treasury.address),
+      await ethers.provider.getBalance(treasury.address) - treasuryBefore,
       (clickReward * 15n) / 100n
     );
+    assert.equal(await adMon.pendingPayout(user.address), 0n);
   });
 
-  it("allows the user to claim the credited MON", async function () {
+  it("keeps settlement live when a recipient rejects MON and allows recovery", async function () {
     const { campaignId, activeUntil } = await createCampaign();
-    const { clickId, shardId } = clickForShard("claim-click");
+    const { clickId, shardId } = clickForShard("rejecting-recipient");
+    const factory = await ethers.getContractFactory("RejectingReceiver");
+    const rejectingReceiver = await factory.deploy();
+    await rejectingReceiver.waitForDeployment();
+    const rejectingAddress = await rejectingReceiver.getAddress();
 
     await adMon
       .connect(relayer)
@@ -80,21 +92,19 @@ describe("AdMon", function () {
         campaignId,
         shardId,
         clickId,
-        user.address,
+        rejectingAddress,
         publisher.address,
         activeUntil
       );
 
-    const amount = await adMon.claimable(user.address);
-    const contractBalanceBefore = await ethers.provider.getBalance(
-      await adMon.getAddress()
-    );
-    await adMon.connect(user).claim();
-
-    assert.equal(await adMon.claimable(user.address), 0n);
+    const userShare = clickReward / 4n;
+    assert.equal(await adMon.pendingPayout(rejectingAddress), userShare);
+    const recipientBefore = await ethers.provider.getBalance(user.address);
+    await rejectingReceiver.withdrawTo(await adMon.getAddress(), user.address);
+    assert.equal(await adMon.pendingPayout(rejectingAddress), 0n);
     assert.equal(
-      await ethers.provider.getBalance(await adMon.getAddress()),
-      contractBalanceBefore - amount
+      await ethers.provider.getBalance(user.address) - recipientBefore,
+      userShare
     );
   });
 
@@ -115,7 +125,7 @@ describe("AdMon", function () {
 
     await settle();
     await assert.rejects(settle(), /ClickAlreadyUsed/);
-    assert.equal(await adMon.claimable(user.address), clickReward / 4n);
+    assert.equal(await adMon.pendingPayout(user.address), 0n);
   });
 
   it("rejects a settlement from an untrusted caller", async function () {
