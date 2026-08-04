@@ -1,11 +1,11 @@
 # AdMon Product Walkthrough
 
-AdMon is deployed and its create-campaign, click-settlement, claim, and replay-rejection checks have passed on Monad testnet at `0xA423ce5FE84554217554Af834C921269c1aaef38`. The publisher application keeps resettable activity labeled `Session preview`, while the separate `Monad testnet proof` band reads finalized public-chain evidence. Do not narrate a session transaction hash as an explorer transaction.
+AdMon is deployed and its create-campaign, click-settlement, claim, and replay-rejection checks have passed on Monad testnet at `0xA423ce5FE84554217554Af834C921269c1aaef38`. The publisher application settles clicks through the active testnet relayer; when settlement is unavailable, it keeps the activity explicitly labeled `Session preview` and does not present a claim. The separate `Monad testnet proof` band reads finalized public-chain evidence.
 
 ## Setup
 
 - The reference host running with network access to Monad testnet RPC.
-- The fixed testnet reward wallet shown in the publisher application.
+- A Monad testnet wallet with MON for the claim gas.
 - The controlled advertiser landing page and a reset local click store.
 - Monadscan links for the finalized settlement and claim transactions.
 
@@ -21,11 +21,11 @@ Send the example prompt, then show that Moss returns a neutral unsigned-action p
 
 **18-30 seconds**
 
-Click `Visit sponsor`. The controlled redirect opens the landing page once. Return to the agent UI and show the local timeline move from `Click recorded` to `Reward finalized`.
+Click `Visit sponsor`. The signed redirect opens the landing page once and the relayer submits `settleClick`. Return to the agent UI and show the timeline move from `Click recorded` to `Settlement proposed` and then `Reward finalized`.
 
 **30-40 seconds**
 
-Show the `0.0025 MON` claimable fixture balance, then explicitly point to the separate `Monad testnet proof: Verified` band.
+Show the `0.0025 MON` claimable balance read from the settlement contract, then explicitly point to the separate `Monad testnet proof: Verified` band.
 
 **40-48 seconds**
 
@@ -33,7 +33,7 @@ Open the public settlement and claim links from the proof band. Show that the cl
 
 **48-56 seconds**
 
-Return to the publisher application and click `Claim reward` to complete the resettable interactive flow. Keep the `Session preview` label visible.
+Return to the publisher application and click `Claim reward`. The connected reward wallet signs `claim()` on Monad testnet; the UI records the claim hash and waits for finality before showing `Claimed`.
 
 **56-60 seconds**
 
