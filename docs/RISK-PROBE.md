@@ -6,7 +6,7 @@
 | --- | --- | --- |
 | Contract deployment | Testnet pass | AdMon is deployed at `0xA423ce5FE84554217554Af834C921269c1aaef38` in transaction `0xa45be5f472adea00e2f59d00d24450a55cdcbc2ecb03155dc53460a6e0640e06`, block `50533513`. RPC reads confirm deployed code, Safe ownership/treasury, and the configured relayer. MonadVision reports a perfect source match and Monadscan reports verified. |
 | Contract settlement | Testnet pass | Campaign `1` was funded with `0.16 MON` in transaction `0x0aa98d220fdbb1c883f3314e30e826fab5f226b8b8d51b818d24baa0094d42cb`. Transaction `0x0ad357b8a27c0797eb2768050dc4d1c0bddb3678e2f919b09fe0145c3425805a` finalized click `0x2822aaf4262aaf85c476efeead89497e71c13b2bf1a849943d704571fa6bf2c7`, credited `0.0025 MON` to the user, and consumed shard `7`. Claim transaction `0x15cd6072eefb56a40aaf4986f08b1eafb6c0bbc1a711d1498188550213f7c146` finalized and cleared the user's claimable balance. Replaying the click through `eth_call` reverts with selector `0x3621014b`, exactly `ClickAlreadyUsed(bytes32)`. |
-| Finality display | Live UI pass | The reference host reads both public receipts, `usedClick`, the cleared claimable balance, and Monad's `finalized` block tag in one RPC batch. It renders `Verified` only when both transactions succeeded and the claim block is finalized. The resettable interaction remains separately labeled `Local probe` / `Simulated source`. |
+| Finality display | Live UI pass | The publisher application reads both public receipts, `usedClick`, the cleared claimable balance, and Monad's `finalized` block tag in one RPC batch. It renders `Verified` only when both transactions succeeded and the claim block is finalized. Resettable activity remains separately labeled `Session preview`. |
 | Wallet identity and gas preflight | Risk found | Claim transaction `0x87d7425a8091db4b395603232e04ac99c3a186e4e8af1612d0c27ce5e2f8aaf7` was mistakenly sent from the relayer, which had zero claimable balance, and reverted after using a `1,000,000` gas limit. Monad charges from the submitted gas limit, so the production flow must verify the connected account, simulate first, and apply a tight estimate before enabling submission. |
 | One-time redirect | Local pass | First signed URL redirects to the controlled sponsor page; second request returns the `already-used` destination. |
 | Host card rendering | Pass | Desktop and narrow-screen checks show a distinct sponsored card and readable evidence layout with no page-level horizontal overflow. |
@@ -16,7 +16,7 @@
 
 The deployment and proof-band transactions above are public Monad testnet evidence. Transaction values produced by the resettable interactive timeline remain deterministic Hardhat-style fixtures and are not public Monad transactions; run `npm run probe:local --workspace contracts` to regenerate the contract-side local evidence. The UI keeps those two sources visibly separate.
 
-Run this probe before building a polished frontend. Its purpose is to prove the two highest-risk demo paths: a one-time click can create a Monad credit, and the host can render the AdMon card in the reference agent.
+Run this probe before expanding the frontend. Its purpose is to prove the two highest-risk product paths: a one-time click can create a Monad credit, and a publisher application can render the AdMon card.
 
 ## Timebox
 
@@ -33,7 +33,7 @@ Maximum 90 minutes. After two failures on the same dependency, record the error 
 
 Pass condition: one credit and one withdrawal are both visible on Monad testnet, and submitting the same `clickId` reverts.
 
-Fallback: retain the successful settlement transaction as recorded evidence and make the visual demo deterministic until the RPC or UI issue is fixed. Do not fabricate a live payout.
+Fallback: retain the successful settlement transaction as recorded evidence and keep session activity isolated until the RPC or UI issue is fixed. Do not fabricate a live payout.
 
 ## Probe B: Finality display
 
@@ -44,7 +44,7 @@ Fallback: retain the successful settlement transaction as recorded evidence and 
 
 Pass condition: a single real settlement visibly transitions through both states.
 
-Fallback: use receipt polling plus the `finalized` block tag. Do not depend on an extended Monad WebSocket API for the MVP.
+Fallback: use receipt polling plus the `finalized` block tag. Do not depend on an extended Monad WebSocket API for the primary product path.
 
 ## Probe C: One-time redirect
 
@@ -59,7 +59,7 @@ Fallback: replace the HTTP redirect with a controlled confirmation screen that i
 
 ## Probe D: Host card rendering
 
-The same MCP result can look different in different hosts. Do not make Codex CLI or Claude Code's transcript layout the primary demo dependency.
+The same MCP result can look different in different hosts. Do not make Codex CLI or Claude Code's transcript layout a primary product dependency.
 
 1. Expose a publisher decision endpoint that returns a strict `ad_offer` object with `title`, `advertiser`, `domain`, `reason`, `reward`, `clickUrl`, and `disclosure`.
 2. Call it from a useful Monad developer assistant that owns the chat UI; the end user installs nothing.
@@ -69,7 +69,7 @@ The same MCP result can look different in different hosts. Do not make Codex CLI
 
 Pass condition: the existing-use-case reference host shows a stable card with a working click URL, without requiring the user to install an advertising-only agent or a generic host to support a custom component.
 
-Fallback: return a Markdown card from the MCP and use a recorded Codex/Claude Code transcript as an interoperability appendix. The public demo remains the reference host.
+Fallback: return a Markdown card from the MCP and use a recorded Codex/Claude Code transcript as an interoperability appendix. The publisher application remains the canonical rendering surface.
 
 ## Evidence to retain
 

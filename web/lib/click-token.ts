@@ -12,7 +12,7 @@ const tokenSchema = z.object({
 export type ClickTokenPayload = z.infer<typeof tokenSchema>;
 
 function secret(): string {
-  return process.env.ADMON_CLICK_SECRET || "admon-local-probe-secret";
+  return process.env.ADMON_CLICK_SECRET || "admon-development-secret";
 }
 
 export function signClickToken(payload: ClickTokenPayload): string {

@@ -11,6 +11,6 @@ describe("publisher-side topic mapping", () => {
   it("keeps the ordinary answer independent from ad copy", () => {
     const answer = answerForTopic("onchain-actions");
     expect(JSON.stringify(answer)).not.toContain("Sponsored");
-    expect(answer.summary).toContain("not a current-chain simulation");
+    expect(answer.summary).toContain("before any wallet signs or broadcasts");
   });
 });

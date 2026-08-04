@@ -26,18 +26,18 @@ const promptOptions = [
   "Prepare a safe wallet action and explain what I will sign."
 ];
 
-const demoWallet = "0x1111111111111111111111111111111111111111";
+const defaultWallet = "0x1111111111111111111111111111111111111111";
 
 const initialStatus: ClickStatus = {
   clickId: "",
   state: "ready",
   claimableMon: "0",
-  mode: "local-probe"
+  mode: "session-preview"
 };
 
 export function AdMonConsole() {
   const [prompt, setPrompt] = useState(promptOptions[0]);
-  const [wallet, setWallet] = useState(demoWallet);
+  const [wallet, setWallet] = useState(defaultWallet);
   const [response, setResponse] = useState<AgentResponse | null>(null);
   const [status, setStatus] = useState<ClickStatus>(initialStatus);
   const [loading, setLoading] = useState(false);
@@ -115,7 +115,7 @@ export function AdMonConsole() {
     else setError(body.error);
   }
 
-  async function resetDemo() {
+  async function resetSession() {
     if (response) {
       await fetch("/api/reset", {
         method: "POST",
@@ -141,9 +141,9 @@ export function AdMonConsole() {
         </div>
         <div className="topbar-actions">
           <span className="network-pill">
-            <span className="network-dot" /> Local probe
+            <span className="network-dot" /> Monad testnet
           </span>
-          <button className="icon-button" onClick={resetDemo} title="Reset demo" type="button">
+          <button className="icon-button" onClick={resetSession} title="Reset session" type="button">
             <RefreshCw size={17} />
           </button>
         </div>
@@ -153,7 +153,7 @@ export function AdMonConsole() {
         <section className="agent-pane">
           <div className="pane-heading">
             <div>
-              <p className="eyebrow">Publisher reference integration</p>
+              <p className="eyebrow">Publisher console</p>
               <h1>Moss-powered Onchain Agent</h1>
             </div>
             <div className="wallet-control">
@@ -217,8 +217,8 @@ export function AdMonConsole() {
                   </ul>
                   <div className="receipt-block">
                     <div>
-                      <span>Moss Receipt contract</span>
-                      <span>Local fixture</span>
+                      <span>Moss action receipt</span>
+                      <span>Unsigned preview</span>
                     </div>
                     {response.answer.receipt.map((line) => (
                       <code key={line}>{line}</code>
@@ -300,7 +300,7 @@ export function AdMonConsole() {
               <p className="eyebrow">Monad evidence</p>
               <h2>Click settlement</h2>
             </div>
-            <span>{status.mode === "local-probe" ? "Simulated source" : "Onchain"}</span>
+            <span>{status.mode === "session-preview" ? "Session preview" : "Onchain"}</span>
           </div>
 
           <section className="live-proof-band" aria-live="polite">
@@ -335,7 +335,7 @@ export function AdMonConsole() {
             ) : (
               <p>
                 {liveProofUnavailable
-                  ? "RPC proof is offline; local interaction remains available."
+                  ? "RPC proof is offline; session activity remains available."
                   : "Reading finalized chain state."}
               </p>
             )}
@@ -420,7 +420,7 @@ export function AdMonConsole() {
             <ArrowUpRight size={15} />
           </a>
           <p className="mode-note">
-            Interactive click values are deterministic fixtures. The testnet proof above is read independently from finalized Monad state.
+            Session activity is isolated from live balances. The testnet proof above is read independently from finalized Monad state.
           </p>
         </aside>
       </div>

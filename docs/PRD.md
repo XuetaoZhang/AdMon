@@ -1,13 +1,11 @@
-# AdMon MVP PRD
+# AdMon Product Requirements
 
 | Field | Value |
 | --- | --- |
 | Product | AdMon |
-| Version | Hackathon MVP v0.1 |
+| Version | 0.1 |
 | Network | Monad testnet |
-| Status | Core MVP implemented; live testnet deployment pending |
-| Feature freeze | 2026-08-08 14:00 CST |
-| Planned submission | 2026-08-09 02:00 CST |
+| Status | Testnet release active |
 
 ## 1. Product summary
 
@@ -40,14 +38,14 @@ Chen clicks the card. The redirect validates a one-time token and sends Chen to 
 AdMon has three integration surfaces, in priority order:
 
 1. **Publisher SDK/API:** the real product. Existing agent applications call the decision endpoint and render `AdMonCard`; their users install nothing.
-2. **Reference integration:** a useful Monad developer assistant that demonstrates one complete publisher integration for judges.
+2. **Reference integration:** a useful Monad developer assistant that documents one complete publisher integration.
 3. **MCP adapter:** an optional interoperability layer for hosts that choose to invoke the tool. It is not the primary consumer distribution strategy and cannot force custom UI in Codex or Claude Code.
 
 ## 3. Why Monad
 
 AdMon is not an ad database with a token attached. Its core proof is frequent, small, onchain click settlements across many independent users and campaigns.
 
-| Monad capability | MVP use |
+| Monad capability | Product use |
 | --- | --- |
 | 400 ms blocks / about 800 ms finality | A click becomes a fast, visible pending-to-finalized reward state. |
 | High throughput and parallel execution | Many independent campaign shards and users can settle concurrently. |
@@ -84,9 +82,9 @@ AdMon is not an ad database with a token attached. Its core proof is frequent, s
 - Stablecoin support, EIP-7702, gas sponsorship, cross-chain payments, and real advertiser integrations.
 - A production privacy protocol or encrypted query matching.
 
-### Roadmap, not MVP: personal rewarded inventory
+### Future product track: personal rewarded inventory
 
-`PERSONAL_REWARDED` lets a user intentionally request sponsored cards through the MCP and bind their own reward wallet without an external publisher application. Advertisers must opt into this inventory separately because reward-seeking traffic has different intent and fraud risk. It uses separate budgets, lower prices, daily caps, and rate limits. It is not included in the hackathon implementation; the MVP implements only publisher inventory.
+`PERSONAL_REWARDED` lets a user intentionally request sponsored cards through the MCP and bind their own reward wallet without an external publisher application. Advertisers must opt into this inventory separately because reward-seeking traffic has different intent and fraud risk. It uses separate budgets, lower prices, daily caps, and rate limits. The current release supports publisher inventory only.
 
 ## 5. Actors and economic model
 
@@ -95,9 +93,9 @@ AdMon is not an ad database with a token attached. Its core proof is frequent, s
 | Advertiser | Creates and funds a campaign in MON. | Pays only for valid click receipts. |
 | User | Opts in, sees a labeled card, and clicks it. | Receives a capped MON rebate after settlement. |
 | Agent publisher / traffic owner | Integrates AdMon into an existing useful agent application. | Receives a share for supplying the interface and receipt. |
-| AdMon protocol | Operates the relayer for this MVP. | Receives a protocol share. |
+| AdMon protocol | Operates the settlement relayer. | Receives a protocol share. |
 
-Default demo split of each click reward: user 25%, host 60%, protocol 15%. The user share is deliberately modest to reduce click-farming incentives. These parameters are configurable only by the test deployment owner.
+Default testnet split of each click reward: user 25%, host 60%, protocol 15%. The user share is deliberately modest to reduce click-farming incentives. These parameters are configurable only by the test deployment owner.
 
 ## 6. Product flow
 
@@ -115,7 +113,7 @@ user visits an existing agent application; no AdMon installation
   -> user optionally calls claim() to receive MON
 ```
 
-The topic mapper does not send the raw user request to the campaign service or to the chain. For the hackathon, it is a transparent local ruleset rather than an LLM classifier.
+The topic mapper does not send the raw user request to the campaign service or to the chain. The current release uses a transparent publisher-side ruleset rather than an LLM classifier.
 
 ## 7. Onchain design
 
@@ -198,7 +196,7 @@ The redirect/relayer attests that it observed a valid click through its one-time
 | Campaign API | Returns a campaign for a topic ID. | Raw user request. |
 | Redirect service | Validates `clickId`, records a single click, redirects to the campaign landing page. | The full conversation. |
 | Relayer | Calls `settleClick`; records transaction hash and status. | Raw user request. |
-| Landing page | A controlled static page used for the demo. | Wallet private keys or agent secrets. |
+| Landing page | A controlled testnet campaign destination. | Wallet private keys or agent secrets. |
 
 Ad copy is untrusted content. The reference agent must render it as structured data in a dedicated card, never as agent instructions, tool instructions, or unfiltered HTML.
 
@@ -206,7 +204,7 @@ Ad copy is untrusted content. The reference agent must render it as structured d
 
 An MCP server controls tool results, not the host's visual layout. Codex CLI and Claude Code may render an MCP result as transcript text, and a host may ignore the tool entirely. AdMon therefore does not require consumers to install an advertising-only agent or promise automatic insertion into closed hosts.
 
-1. **Publisher SDK/API mode:** return a strict `ad_offer` object to an application that owns its UI. This is the product and the primary judging path.
+1. **Publisher SDK/API mode:** return a strict `ad_offer` object to an application that owns its UI. This is the primary integration path.
 2. **Portable MCP mode:** return the same object plus a Markdown fallback. A compliant host can render it as a card, but the generic host is not promised to do so.
 3. **Reference integration:** run a Monad developer assistant that demonstrates the publisher flow end to end.
 
@@ -221,7 +219,7 @@ The reference host needs one responsive route with four fixed regions:
 
 The UI must never label a click as proof of attention. It must use `verified click` or `click receipt`.
 
-## 10. Demo scenarios
+## 10. Product verification scenarios
 
 ### Scenario A: one real end-to-end click
 
@@ -242,7 +240,7 @@ Re-submit the same `clickId`. The contract must revert and the UI must show `Alr
 
 ## 11. Success metrics and acceptance criteria
 
-The MVP is ready for submission only when all of the following are true:
+The testnet release meets its acceptance criteria when all of the following are true:
 
 - A raw user prompt is absent from network requests and chain logs; the campaign API receives only a fixed `topicId`.
 - A card is visibly separate from the ordinary answer and contains advertiser, destination domain, sponsored label, and reward amount.
@@ -264,19 +262,16 @@ Run these before building the polished interface. Stop and switch to the fallbac
 | Redirect link | One-time token redirects once and blocks the replay. | Use a controlled confirmation page with a `Record click` button. |
 | Claim transaction | Registered EOA receives MON. | Keep real credit evidence and show an already-recorded claim transaction. |
 
-## 13. Delivery plan
+## 13. Release roadmap
 
-| Date | Deliverable |
+| Phase | Deliverable |
 | --- | --- |
-| Aug 3 | Contract skeleton, tests, testnet deployment probe, one manually settled click. |
-| Aug 4 | Redirect service, local topic mapper, controlled landing page, replay protection. |
-| Aug 5 | Reference agent UI and single end-to-end click path. |
-| Aug 6 | WebSocket/finality states, dashboard, 64-session load script. |
-| Aug 7 | Public deployment, README, test evidence, 60-second demo capture. |
-| Aug 8 14:00 | Feature freeze. Only reliability fixes, submission page, video, and deck remain. |
-| Aug 9 02:00 | Submit the best working version. |
+| Testnet foundation | Contract, tests, deployment verification, and one settled click. |
+| Publisher integration | Redirect service, private topic mapper, landing page, and replay protection. |
+| Settlement visibility | Finality states, transaction evidence, and concurrent settlement measurements. |
+| Public release | Hosted publisher application, integration documentation, and operational monitoring. |
 
-## 14. Demo reliability levels
+## 14. Service verification tiers
 
 | Level | Definition |
 | --- | --- |
@@ -294,7 +289,7 @@ AdMon is an original Monad implementation. It takes inspiration from:
 - `Oblivionis214/AttentionMarket` for the attention-market design space. Its MIT license must be retained for any copied code; AdMon intentionally does not copy its linear keyword-scan or Base USDC deployment design.
 - `nishuzumi/moss` for agent-callable Monad Capabilities and verified Receipts. The current GitHub core is vendored at its inspected commit because the npm release exposes an older API; its MIT license is retained.
 
-## 16. Submission copy
+## 16. Product positioning
 
 ### One-line pitch
 
@@ -305,4 +300,4 @@ AI agents are becoming the new search interface. AdMon makes paid recommendation
 - It does not prove that a user read an advertisement.
 - It does not prevent all click fraud.
 - It does not support every MCP host without a compliant wrapper.
-- It is a Monad testnet hackathon MVP, not an audited production ad network.
+- It is a Monad testnet release, not an audited production ad network.

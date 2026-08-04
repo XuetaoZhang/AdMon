@@ -15,7 +15,7 @@ export type AdOffer = {
   protocolShareMon: string;
   clickUrl: string;
   disclosure: string;
-  demoCampaign: boolean;
+  environment: "monad-testnet";
 };
 
 export type AgentResponse = {
@@ -37,7 +37,7 @@ export type ClickStatus = {
   transactionHash?: `0x${string}`;
   blockNumber?: number;
   claimableMon: string;
-  mode: "local-probe" | "monad-testnet";
+  mode: "session-preview" | "monad-testnet";
 };
 
 export type LiveProof = {

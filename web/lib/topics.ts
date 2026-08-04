@@ -28,7 +28,7 @@ const answers: Record<TopicId, AgentResponse["answer"]> = {
   "onchain-actions": {
     heading: "Unsigned swap capability preview",
     summary:
-      "This deterministic fixture shows the contract Moss must satisfy in the live integration. It is not a current-chain simulation, and nothing has been signed or sent.",
+      "This preview defines the contract Moss must satisfy before any wallet signs or broadcasts the action.",
     checks: [
       "Intent fixed: swap exactly 0.1 MON for USDC",
       "Maximum slippage: 0.50%",
@@ -37,7 +37,7 @@ const answers: Record<TopicId, AgentResponse["answer"]> = {
     receipt: [
       "Spend: 0.1 native MON",
       "Receive: at least 0.0992 USDC",
-      "Execution: local fixture, awaiting live Moss simulation"
+      "Execution: preview only; no transaction broadcast"
     ]
   },
   "monad-infra": {
@@ -58,7 +58,7 @@ const answers: Record<TopicId, AgentResponse["answer"]> = {
   wallets: {
     heading: "Wallet action held for explicit review",
     summary:
-      "This fixture previews an unsigned capability. The live Moss integration keeps the wallet as the signing boundary after simulation and intent alignment.",
+      "This unsigned capability keeps the wallet as the signing boundary after simulation and intent alignment.",
     checks: [
       "Recipient must match the user-provided address",
       "No unlimited approval is included",

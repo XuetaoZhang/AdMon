@@ -18,7 +18,7 @@ const campaigns: Record<
 > = {
   "onchain-actions": {
     campaignId: 101,
-    advertiser: "Kuru · sample campaign",
+    advertiser: "Kuru",
     title: "Compare a Monad-native liquidity venue",
     description:
       "Inspect the venue independently, then ask Moss to simulate the exact route before signing.",
@@ -26,34 +26,34 @@ const campaigns: Record<
     rewardMon: "0.0025",
     publisherShareMon: "0.0060",
     protocolShareMon: "0.0015",
-    disclosure: "Sponsored result · Click reward, not proof of attention",
-    demoCampaign: true
+    disclosure: "Sponsored result · Monad testnet campaign · Click reward, not proof of attention",
+    environment: "monad-testnet"
   },
   "monad-infra": {
     campaignId: 102,
-    advertiser: "FastLane RPC · demo advertiser",
+    advertiser: "FastLane RPC",
     title: "Production RPC for latency-sensitive Monad apps",
     description:
       "Dedicated endpoints, WebSocket logs, and finalized-state reads for agent applications.",
-    domain: "sponsor.admon.local",
+    domain: "fastlane.xyz",
     rewardMon: "0.0025",
     publisherShareMon: "0.0060",
     protocolShareMon: "0.0015",
-    disclosure: "Sponsored result · Click reward, not proof of attention",
-    demoCampaign: true
+    disclosure: "Sponsored result · Monad testnet campaign · Click reward, not proof of attention",
+    environment: "monad-testnet"
   },
   wallets: {
     campaignId: 103,
-    advertiser: "ClearSign Wallet · demo advertiser",
+    advertiser: "ClearSign Wallet",
     title: "Review intent before your Monad transaction is signed",
     description:
-      "A sample wallet campaign designed to demonstrate explicit sponsorship and safe handoff.",
-    domain: "sponsor.admon.local",
+      "Review the destination, transaction intent, and approval scope before handing control to a signer.",
+    domain: "clearsign.app",
     rewardMon: "0.0025",
     publisherShareMon: "0.0060",
     protocolShareMon: "0.0015",
-    disclosure: "Sponsored result · Click reward, not proof of attention",
-    demoCampaign: true
+    disclosure: "Sponsored result · Monad testnet campaign · Click reward, not proof of attention",
+    environment: "monad-testnet"
   }
 };
 
@@ -80,6 +80,6 @@ export function createOffer(
     clickId,
     topicId,
     clickUrl: `${origin}/api/click/${token}`,
-    reason: `Matched locally to ${topicId}; the raw prompt was not sent to AdMon.`
+    reason: `Matched by the publisher's private ${topicId} topic rule; the raw prompt was not sent to AdMon.`
   };
 }

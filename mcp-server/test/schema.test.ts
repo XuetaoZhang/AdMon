@@ -6,23 +6,23 @@ const offer = offerSchema.parse({
   campaignId: 101,
   clickId: `0x${"ab".repeat(32)}`,
   topicId: "onchain-actions",
-  advertiser: "Demo advertiser",
+  advertiser: "Testnet advertiser",
   title: "Inspect a sponsored route",
   description: "Moss simulates before the user signs.",
   domain: "example.com",
-  reason: "Matched locally to onchain-actions.",
+  reason: "Matched by the publisher's private onchain-actions topic rule.",
   rewardMon: "0.0025",
   publisherShareMon: "0.0060",
   protocolShareMon: "0.0015",
   clickUrl: "https://example.com/click",
   disclosure: "Sponsored result · Click reward, not proof of attention",
-  demoCampaign: true
+  environment: "monad-testnet"
 });
 
 describe("MCP offer schema", () => {
   it("renders a visible sponsorship and reward disclosure", () => {
     const markdown = renderOfferMarkdown(offer);
-    expect(markdown).toContain("Sponsored · Demo advertiser");
+    expect(markdown).toContain("Sponsored · Testnet advertiser");
     expect(markdown).toContain("+0.0025 MON");
     expect(markdown).toContain("not proof of attention");
     expect(markdown).toContain(offer.clickUrl);

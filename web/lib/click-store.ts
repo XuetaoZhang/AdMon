@@ -27,7 +27,7 @@ export function recordClick(clickId: string): StoredClick | null {
     transactionHash,
     blockNumber: 21_948_301 + clicks.size,
     claimableMon: "0.0025",
-    mode: "local-probe"
+    mode: "session-preview"
   };
   clicks.set(clickId, stored);
   return stored;
@@ -40,7 +40,7 @@ export function getClickStatus(clickId: string): ClickStatus {
       clickId,
       state: "ready",
       claimableMon: "0",
-      mode: "local-probe"
+      mode: "session-preview"
     };
   }
 

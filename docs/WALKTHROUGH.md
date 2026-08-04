@@ -1,11 +1,11 @@
-# AdMon 60-Second Demo
+# AdMon Product Walkthrough
 
-AdMon is deployed and its create-campaign, click-settlement, claim, and replay-rejection probes have passed on Monad testnet at `0xA423ce5FE84554217554Af834C921269c1aaef38`. The reference host keeps its resettable interaction labeled `Local probe` / `Simulated source`, while the separate `Monad testnet proof` band reads finalized public-chain evidence. Do not narrate an interactive fixture hash as an explorer transaction.
+AdMon is deployed and its create-campaign, click-settlement, claim, and replay-rejection checks have passed on Monad testnet at `0xA423ce5FE84554217554Af834C921269c1aaef38`. The publisher application keeps resettable activity labeled `Session preview`, while the separate `Monad testnet proof` band reads finalized public-chain evidence. Do not narrate a session transaction hash as an explorer transaction.
 
 ## Setup
 
 - The reference host running with network access to Monad testnet RPC.
-- The fixed demo reward wallet shown in the host.
+- The fixed testnet reward wallet shown in the publisher application.
 - The controlled advertiser landing page and a reset local click store.
 - Monadscan links for the finalized settlement and claim transactions.
 
@@ -33,7 +33,7 @@ Open the public settlement and claim links from the proof band. Show that the cl
 
 **48-56 seconds**
 
-Return to the reference host and click `Claim reward` to complete the resettable interactive flow. Keep the `Simulated source` label visible.
+Return to the publisher application and click `Claim reward` to complete the resettable interactive flow. Keep the `Session preview` label visible.
 
 **56-60 seconds**
 
@@ -43,7 +43,7 @@ Open the same signed click URL again and show the one-time redirect rejection. E
 
 Agent recommendations do not need hidden advertising. AdMon makes the advertiser, the click, the payout, and the Monad settlement visible to everyone.
 
-## Backup evidence
+## Reference captures
 
-- [Desktop reference host with Sponsored card and testnet proof](assets/admon-demo-desktop.png)
+- [Desktop publisher application with Sponsored card and testnet proof](assets/admon-product-desktop.png)
 - [Narrow-screen testnet proof layout](assets/admon-proof-mobile.png)

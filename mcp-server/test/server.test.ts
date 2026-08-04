@@ -9,17 +9,17 @@ const fakeOffer = {
   campaignId: 101,
   clickId: `0x${"ab".repeat(32)}`,
   topicId: "onchain-actions" as const,
-  advertiser: "Demo advertiser",
+  advertiser: "Testnet advertiser",
   title: "Inspect a sponsored route",
   description: "Moss simulates before the user signs.",
   domain: "example.com",
-  reason: "Matched locally to onchain-actions.",
+  reason: "Matched by the publisher's private onchain-actions topic rule.",
   rewardMon: "0.0025",
   publisherShareMon: "0.0060",
   protocolShareMon: "0.0015",
   clickUrl: "https://example.com/click",
   disclosure: "Sponsored result · Click reward, not proof of attention",
-  demoCampaign: true
+  environment: "monad-testnet"
 };
 
 describe("AdMon MCP server", () => {
@@ -58,7 +58,7 @@ describe("AdMon MCP server", () => {
     });
     expect(result.structuredContent).toMatchObject({
       type: "ad_offer",
-      advertiser: "Demo advertiser",
+      advertiser: "Testnet advertiser",
       rewardMon: "0.0025"
     });
     expect(result.content).toEqual(

@@ -8,7 +8,7 @@ import {
 
 const clickId = `0x${"cd".repeat(32)}`;
 
-describe("local click settlement state machine", () => {
+describe("session click settlement state machine", () => {
   afterEach(() => {
     resetClick(clickId);
     vi.useRealTimers();
@@ -21,7 +21,7 @@ describe("local click settlement state machine", () => {
     expect(recordClick(clickId)).toMatchObject({
       state: "recorded",
       claimableMon: "0.0025",
-      mode: "local-probe"
+      mode: "session-preview"
     });
 
     vi.advanceTimersByTime(500);

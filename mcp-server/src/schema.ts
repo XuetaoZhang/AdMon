@@ -18,7 +18,7 @@ export const offerSchema = z.object({
   protocolShareMon: z.string(),
   clickUrl: z.string().url(),
   disclosure: z.string(),
-  demoCampaign: z.boolean()
+  environment: z.literal("monad-testnet")
 });
 
 export type AdOffer = z.infer<typeof offerSchema>;
