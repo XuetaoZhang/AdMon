@@ -61,6 +61,11 @@ export function AdMonConsole() {
   const [walletConnected, setWalletConnected] = useState(false);
   const [claimSubmitting, setClaimSubmitting] = useState(false);
 
+  const canClaim =
+    status.mode === "monad-testnet" &&
+    status.state === "finalized" &&
+    !status.chainError;
+
   async function switchToMonadTestnet(provider: EthereumProvider): Promise<void> {
     const chainId = await provider.request({ method: "eth_chainId" });
     if (String(chainId).toLowerCase() === monadTestnetChainId) return;
@@ -506,16 +511,20 @@ export function AdMonConsole() {
 
           <div className="claim-panel">
             <span>Claimable reward</span>
-            <strong>{status.state === "claimed" ? "0" : status.claimableMon} MON</strong>
+            <strong>
+              {status.mode === "session-preview"
+                ? "Preview only"
+                : `${status.state === "claimed" ? "0" : status.claimableMon} MON`}
+            </strong>
             <button
-              disabled={status.state !== "finalized" || claimSubmitting}
+              disabled={!canClaim || claimSubmitting}
               onClick={() => void claimReward()}
               type="button"
             >
-              {status.state === "claimed" ? (
+              {status.mode === "monad-testnet" && status.state === "claimed" ? (
                 <><Check size={16} /> Claimed</>
               ) : (
-                <><MousePointerClick size={16} /> {claimSubmitting ? "Waiting for wallet" : "Claim reward"}</>
+                <><MousePointerClick size={16} /> {claimSubmitting ? "Waiting for wallet" : canClaim ? "Claim reward" : "Awaiting settlement"}</>
               )}
             </button>
           </div>

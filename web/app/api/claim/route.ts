@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getChainConfig, getClaimTransaction, readSettlement } from "@/lib/chain-relayer";
-import { claimClick, getClickStatus, markClaimSubmitted } from "@/lib/click-store";
+import { getClickStatus, markClaimSubmitted } from "@/lib/click-store";
 
 const claimSchema = z.object({
   clickId: z.string().regex(/^0x[0-9a-f]{64}$/),
@@ -65,12 +65,12 @@ export async function POST(request: Request) {
     });
   }
 
-  const click = claimClick(parsed.data.clickId);
-  if (!click) {
-    return NextResponse.json(
-      { error: "The reward is not finalized or has already been claimed." },
-      { status: 409 }
-    );
-  }
-  return NextResponse.json(click);
+  return NextResponse.json(
+    {
+      error: status.chainError
+        ? "This click has no claimable balance because Monad settlement did not complete."
+        : "This click is not backed by a Monad settlement."
+    },
+    { status: 409 }
+  );
 }

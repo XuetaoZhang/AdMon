@@ -29,7 +29,7 @@ npm run build
 npm run dev --workspace web
 ```
 
-Open `http://localhost:3000`. The reference publisher host calls the same MCP offer tool used by external agent hosts. With a configured relayer, each signed click is submitted to the Monad testnet contract; without one, the UI keeps the activity explicitly marked as a session preview.
+Open `http://localhost:3000`. The reference publisher host calls the same MCP offer tool used by external agent hosts. With a configured relayer, each signed click is submitted to the Monad testnet contract; without one, the UI keeps the activity explicitly marked as a session preview and never presents it as claimable MON.
 
 Run the local contract verification:
 
