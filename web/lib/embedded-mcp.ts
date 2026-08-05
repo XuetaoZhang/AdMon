@@ -28,9 +28,9 @@ export async function getOfferThroughMcp(
       }
     },
     async (input) => {
-      const campaign = getCampaignByCreativeId(input.creativeId);
+      const campaign = await getCampaignByCreativeId(input.creativeId);
       if (!campaign) throw new Error("The matched campaign is no longer active.");
-      const offer = createOffer(campaign, input.userAddress, origin);
+      const offer = await createOffer(campaign, input.userAddress, origin);
       return {
         content: [{ type: "text", text: JSON.stringify(offer) }],
         structuredContent: offer

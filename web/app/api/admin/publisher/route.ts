@@ -8,7 +8,7 @@ const publisherSchema = z.object({
 });
 
 export async function GET() {
-  return NextResponse.json({ publisher: getPublisherProfile() });
+  return NextResponse.json({ publisher: await getPublisherProfile() });
 }
 
 export async function PUT(request: Request) {
@@ -17,7 +17,7 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "Publisher profile is invalid." }, { status: 400 });
   }
   return NextResponse.json({
-    publisher: savePublisherProfile({
+    publisher: await savePublisherProfile({
       ...parsed.data,
       wallet: parsed.data.wallet as `0x${string}`
     })

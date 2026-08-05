@@ -20,7 +20,7 @@ const campaignSchema = z.object({
 });
 
 export async function GET() {
-  return NextResponse.json({ campaigns: listCampaigns() });
+  return NextResponse.json({ campaigns: await listCampaigns() });
 }
 
 export async function PUT(request: Request) {
@@ -28,5 +28,5 @@ export async function PUT(request: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Campaign details are invalid." }, { status: 400 });
   }
-  return NextResponse.json({ campaign: saveCampaign({ ...parsed.data, keywords: normalizeKeywords(parsed.data.keywords) }) });
+  return NextResponse.json({ campaign: await saveCampaign({ ...parsed.data, keywords: normalizeKeywords(parsed.data.keywords) }) });
 }

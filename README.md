@@ -34,6 +34,8 @@ npm run dev --workspace web
 
 Open `http://localhost:3000`. The reference publisher host calls the same MCP offer tool used by external agent hosts, and the console lets publishers register the wallet included in newly issued click links.
 
+For a shared deployment with persistent campaign, publisher, and click state, see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). The Render blueprint uses `/api/health` for service health and can be opened directly from [Render's Blueprint deploy flow](https://render.com/deploy).
+
 The reference agent calls DeepSeek from the server. Configure the provider in `web/.env.local` so the API key never reaches the browser:
 
 ```bash

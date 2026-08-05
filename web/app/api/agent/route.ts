@@ -49,7 +49,7 @@ export async function POST(request: Request) {
   const origin = new URL(request.url).origin;
   // Campaign keywords are matched inside the publisher host. The MCP tool
   // receives only the selected creative ID, never the user prompt.
-  const matchedCampaign = findCampaignForPrompt(parsed.data.prompt);
+  const matchedCampaign = await findCampaignForPrompt(parsed.data.prompt);
   const offer = matchedCampaign
     ? await getOfferThroughMcp(matchedCampaign.id, parsed.data.userAddress, origin)
     : null;

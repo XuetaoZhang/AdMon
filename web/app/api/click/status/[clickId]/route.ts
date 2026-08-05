@@ -7,7 +7,7 @@ export async function GET(
   context: { params: Promise<{ clickId: string }> }
 ) {
   const { clickId } = await context.params;
-  const status = getClickStatus(clickId);
+  const status = await getClickStatus(clickId);
   if (status.mode === "monad-testnet" && status.transactionHash && status.userAddress) {
     try {
       const chain = await readSettlement(
@@ -15,10 +15,10 @@ export async function GET(
         clickId as `0x${string}`,
         status.userAddress
       );
-      updateOnchainStatus(clickId, chain);
-      return NextResponse.json(getClickStatus(clickId));
+      await updateOnchainStatus(clickId, chain);
+      return NextResponse.json(await getClickStatus(clickId));
     } catch (error) {
-      updateOnchainStatus(clickId, {
+      await updateOnchainStatus(clickId, {
         state: status.state,
         paidMon: status.paidMon,
         blockNumber: status.blockNumber,
@@ -26,5 +26,5 @@ export async function GET(
       });
     }
   }
-  return NextResponse.json(getClickStatus(clickId));
+  return NextResponse.json(await getClickStatus(clickId));
 }

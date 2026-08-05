@@ -18,11 +18,11 @@ export async function POST(request: Request) {
     );
   }
 
-  const campaign = findCampaignForKeywords(parsed.data.keywords);
+  const campaign = await findCampaignForKeywords(parsed.data.keywords);
   if (!campaign) return new NextResponse(null, { status: 204 });
 
   return NextResponse.json(
-    createOffer(
+    await createOffer(
       campaign,
       parsed.data.userAddress,
       new URL(request.url).origin,

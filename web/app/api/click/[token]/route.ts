@@ -10,6 +10,11 @@ import {
 import { verifyClickToken } from "@/lib/click-token";
 import { incrementCampaignClicks } from "@/lib/product-store";
 
+export const runtime = "nodejs";
+// The redirect returns immediately; Vercel keeps the after() settlement work
+// within this route's allowed execution window.
+export const maxDuration = 60;
+
 export async function GET(
   request: Request,
   context: { params: Promise<{ token: string }> }
@@ -22,12 +27,12 @@ export async function GET(
     });
   }
 
-  const existing = getClickStatus(payload.clickId);
+  const existing = await getClickStatus(payload.clickId);
   if (existing.chainError) {
-    resetClick(payload.clickId);
+    await resetClick(payload.clickId);
   }
 
-  const click = recordClick(payload.clickId, {
+  const click = await recordClick(payload.clickId, {
     campaignId: payload.campaignId,
     userAddress: payload.user as `0x${string}`,
     publisherAddress: payload.publisher as `0x${string}`
@@ -49,11 +54,11 @@ export async function GET(
         publisherAddress: payload.publisher as `0x${string}`,
         expiresAt: payload.expiresAt
       });
-      markSettlementSubmitted(payload.clickId, settlement.transactionHash);
-      incrementCampaignClicks(payload.campaignId);
+      await markSettlementSubmitted(payload.clickId, settlement.transactionHash);
+      await incrementCampaignClicks(payload.campaignId);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Monad settlement unavailable.";
-      markSettlementError(payload.clickId, message);
+      await markSettlementError(payload.clickId, message);
     }
   });
 

@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import type { TopicId } from "./ad-types";
+import { ensurePostgresSchema, getPostgresPool } from "./postgres";
 
 export type CampaignStatus = "active" | "paused" | "draft";
 
@@ -105,6 +106,7 @@ const seededCampaigns: ProductCampaign[] = [
 
 const storePath = path.join(process.cwd(), ".admon-store.json");
 const isTestEnvironment = process.env.NODE_ENV === "test" || process.env.VITEST === "true";
+let databaseSeedPromise: Promise<void> | null = null;
 
 function createSeedStore(): ProductStore {
   return {
@@ -138,7 +140,7 @@ function isProductStore(value: unknown): value is ProductStore {
   );
 }
 
-function readStore(): ProductStore {
+function readLocalStore(): ProductStore {
   if (isTestEnvironment) return testStore;
 
   if (existsSync(storePath)) {
@@ -151,11 +153,11 @@ function readStore(): ProductStore {
   }
 
   const seeded = createSeedStore();
-  writeStore(seeded);
+  writeLocalStore(seeded);
   return seeded;
 }
 
-function writeStore(nextStore: ProductStore): void {
+function writeLocalStore(nextStore: ProductStore): void {
   if (isTestEnvironment) {
     testStore = cloneStore(nextStore);
     return;
@@ -166,14 +168,6 @@ function writeStore(nextStore: ProductStore): void {
   const temporaryPath = `${storePath}.tmp`;
   writeFileSync(temporaryPath, `${JSON.stringify(nextStore, null, 2)}\n`, "utf8");
   renameSync(temporaryPath, storePath);
-}
-
-export function listCampaigns(): ProductCampaign[] {
-  const store = readStore();
-  return store.campaigns.map((campaign) => ({
-    ...campaign,
-    keywords: normalizeKeywords(campaign.keywords)
-  }));
 }
 
 function normalizeKeyword(value: string): string {
@@ -198,10 +192,107 @@ function campaignMatchScore(campaign: ProductCampaign, haystack: string): number
   );
 }
 
-export function findCampaignForPrompt(prompt: string): ProductCampaign | null {
+function campaignFromRow(row: Record<string, unknown>): ProductCampaign {
+  const keywords = Array.isArray(row.keywords)
+    ? row.keywords.filter((keyword): keyword is string => typeof keyword === "string")
+    : [];
+  const updatedAt = row.updated_at instanceof Date
+    ? row.updated_at.toISOString()
+    : String(row.updated_at);
+  return {
+    id: String(row.id),
+    campaignId: Number(row.campaign_id),
+    advertiser: String(row.advertiser),
+    title: String(row.title),
+    description: String(row.description),
+    keywords: normalizeKeywords(keywords),
+    topicId: String(row.topic_id) as TopicId,
+    destinationUrl: String(row.destination_url),
+    domain: String(row.domain),
+    clickRewardMon: String(row.click_reward_mon),
+    budgetMon: String(row.budget_mon),
+    status: String(row.status) as CampaignStatus,
+    clicks: Number(row.clicks),
+    updatedAt
+  };
+}
+
+async function getDatabase() {
+  const database = getPostgresPool();
+  if (!database) return null;
+  await ensurePostgresSchema();
+  if (!databaseSeedPromise) {
+    databaseSeedPromise = (async () => {
+      const campaignCount = await database.query<{ count: string }>(
+        "SELECT COUNT(*)::text AS count FROM admon_campaigns"
+      );
+      if (campaignCount.rows[0]?.count !== "0") return;
+
+      const localStore = readLocalStore();
+      await database.query("BEGIN");
+      try {
+        for (const campaign of localStore.campaigns) {
+          await database.query(
+            `INSERT INTO admon_campaigns (
+              id, campaign_id, advertiser, title, description, keywords, topic_id,
+              destination_url, domain, click_reward_mon, budget_mon, status, clicks, updated_at
+            ) VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8, $9, $10, $11, $12, $13, $14)`,
+            [
+              campaign.id,
+              campaign.campaignId,
+              campaign.advertiser,
+              campaign.title,
+              campaign.description,
+              JSON.stringify(normalizeKeywords(campaign.keywords)),
+              campaign.topicId,
+              campaign.destinationUrl,
+              campaign.domain,
+              campaign.clickRewardMon,
+              campaign.budgetMon,
+              campaign.status,
+              campaign.clicks,
+              campaign.updatedAt
+            ]
+          );
+        }
+        await database.query(
+          `INSERT INTO admon_publisher (id, name, wallet)
+           VALUES (TRUE, $1, $2)
+           ON CONFLICT (id) DO NOTHING`,
+          [localStore.publisher.name, localStore.publisher.wallet]
+        );
+        await database.query("COMMIT");
+      } catch (error) {
+        await database.query("ROLLBACK");
+        throw error;
+      }
+    })();
+  }
+  try {
+    await databaseSeedPromise;
+  } finally {
+    databaseSeedPromise = null;
+  }
+  return database;
+}
+
+export async function listCampaigns(): Promise<ProductCampaign[]> {
+  const database = await getDatabase();
+  if (!database) {
+    return readLocalStore().campaigns.map((campaign) => ({
+      ...campaign,
+      keywords: normalizeKeywords(campaign.keywords)
+    }));
+  }
+  const result = await database.query(
+    "SELECT * FROM admon_campaigns ORDER BY updated_at DESC, id ASC"
+  );
+  return result.rows.map(campaignFromRow);
+}
+
+export async function findCampaignForPrompt(prompt: string): Promise<ProductCampaign | null> {
   const normalizedPrompt = normalizeKeyword(prompt);
-  const store = readStore();
-  const matches = store.campaigns
+  const matches = (await listCampaigns())
     .filter((campaign) => campaign.status === "active")
     .map((campaign) => ({ campaign, score: campaignMatchScore(campaign, normalizedPrompt) }))
     .filter(({ score }) => score > 0)
@@ -210,52 +301,100 @@ export function findCampaignForPrompt(prompt: string): ProductCampaign | null {
   return winner ? { ...winner, keywords: normalizeKeywords(winner.keywords) } : null;
 }
 
-export function findCampaignForKeywords(keywords: readonly string[]): ProductCampaign | null {
+export async function findCampaignForKeywords(
+  keywords: readonly string[]
+): Promise<ProductCampaign | null> {
   return findCampaignForPrompt(normalizeKeywords(keywords).join(" "));
 }
 
-export function getCampaignByCreativeId(creativeId: string): ProductCampaign | null {
-  const store = readStore();
-  const campaign = store.campaigns.find(
+export async function getCampaignByCreativeId(creativeId: string): Promise<ProductCampaign | null> {
+  const campaign = (await listCampaigns()).find(
     (item) => item.id === creativeId && item.status === "active"
   );
   return campaign ? { ...campaign, keywords: normalizeKeywords(campaign.keywords) } : null;
 }
 
-export function saveCampaign(campaign: ProductCampaign): ProductCampaign {
-  const store = readStore();
+export async function saveCampaign(campaign: ProductCampaign): Promise<ProductCampaign> {
   const next = {
     ...campaign,
     keywords: normalizeKeywords(campaign.keywords),
     domain: new URL(campaign.destinationUrl).hostname.replace(/^www\./, ""),
     updatedAt: new Date().toISOString()
   };
-  const index = store.campaigns.findIndex((item) => item.id === campaign.id);
-  if (index === -1) store.campaigns.unshift(next);
-  else store.campaigns[index] = next;
-  writeStore(store);
+  const database = await getDatabase();
+  if (database) {
+    await database.query(
+      `INSERT INTO admon_campaigns (
+        id, campaign_id, advertiser, title, description, keywords, topic_id,
+        destination_url, domain, click_reward_mon, budget_mon, status, clicks, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8, $9, $10, $11, $12, $13, $14)
+      ON CONFLICT (id) DO UPDATE SET
+        campaign_id = EXCLUDED.campaign_id, advertiser = EXCLUDED.advertiser,
+        title = EXCLUDED.title, description = EXCLUDED.description, keywords = EXCLUDED.keywords,
+        topic_id = EXCLUDED.topic_id, destination_url = EXCLUDED.destination_url,
+        domain = EXCLUDED.domain, click_reward_mon = EXCLUDED.click_reward_mon,
+        budget_mon = EXCLUDED.budget_mon, status = EXCLUDED.status, clicks = EXCLUDED.clicks,
+        updated_at = EXCLUDED.updated_at`,
+      [
+        next.id, next.campaignId, next.advertiser, next.title, next.description,
+        JSON.stringify(next.keywords), next.topicId, next.destinationUrl, next.domain,
+        next.clickRewardMon, next.budgetMon, next.status, next.clicks, next.updatedAt
+      ]
+    );
+  } else {
+    const store = readLocalStore();
+    const index = store.campaigns.findIndex((item) => item.id === campaign.id);
+    if (index === -1) store.campaigns.unshift(next);
+    else store.campaigns[index] = next;
+    writeLocalStore(store);
+  }
   return { ...next, keywords: normalizeKeywords(next.keywords) };
 }
 
-export function getPublisherProfile(): PublisherProfile {
-  const store = readStore();
+export async function getPublisherProfile(): Promise<PublisherProfile> {
+  const database = await getDatabase();
+  if (!database) return { ...readLocalStore().publisher };
+  const result = await database.query<{ name: string; wallet: string }>(
+    "SELECT name, wallet FROM admon_publisher WHERE id = TRUE"
+  );
+  const publisher = result.rows[0];
+  if (!publisher) throw new Error("AdMon publisher profile is not initialized.");
+  return { name: publisher.name, wallet: publisher.wallet as `0x${string}` };
+}
+
+export async function savePublisherProfile(profile: PublisherProfile): Promise<PublisherProfile> {
+  const database = await getDatabase();
+  if (database) {
+    await database.query(
+      `INSERT INTO admon_publisher (id, name, wallet, updated_at)
+       VALUES (TRUE, $1, $2, NOW())
+       ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, wallet = EXCLUDED.wallet,
+         updated_at = EXCLUDED.updated_at`,
+      [profile.name, profile.wallet]
+    );
+    return { ...profile };
+  }
+  const store = readLocalStore();
+  store.publisher = { ...profile };
+  writeLocalStore(store);
   return { ...store.publisher };
 }
 
-export function savePublisherProfile(profile: PublisherProfile): PublisherProfile {
-  const store = readStore();
-  store.publisher = { ...profile };
-  writeStore(store);
-  return getPublisherProfile();
-}
-
-export function incrementCampaignClicks(campaignId: number): void {
-  const store = readStore();
+export async function incrementCampaignClicks(campaignId: number): Promise<void> {
+  const database = await getDatabase();
+  if (database) {
+    await database.query(
+      "UPDATE admon_campaigns SET clicks = clicks + 1, updated_at = NOW() WHERE campaign_id = $1 AND status = 'active'",
+      [campaignId]
+    );
+    return;
+  }
+  const store = readLocalStore();
   const campaign = store.campaigns.find(
     (item) => item.campaignId === campaignId && item.status === "active"
   );
   if (campaign) {
     campaign.clicks += 1;
-    writeStore(store);
+    writeLocalStore(store);
   }
 }

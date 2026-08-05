@@ -4,13 +4,13 @@ import { signClickToken } from "./click-token";
 import type { ProductCampaign } from "./product-store";
 import { getPublisherProfile } from "./product-store";
 
-export function createOffer(
+export async function createOffer(
   campaign: ProductCampaign,
   userAddress: string,
   origin: string,
   requestedPublisher?: string
-): AdOffer {
-  const publisherAddress = requestedPublisher || getPublisherProfile().wallet;
+): Promise<AdOffer> {
+  const publisherAddress = requestedPublisher || (await getPublisherProfile()).wallet;
   const clickId = `0x${createHash("sha256")
     .update(randomUUID())
     .digest("hex")}` as `0x${string}`;
