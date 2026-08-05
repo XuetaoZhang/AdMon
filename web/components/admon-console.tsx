@@ -46,7 +46,7 @@ export function AdMonConsole() {
   }, []);
 
   useEffect(() => {
-    if (!response || status.state === "paid" || status.chainError) return;
+    if (!response?.offer || status.state === "paid" || status.chainError) return;
     const clickId = response.offer.clickId;
     let cancelled = false;
     let timer: number | undefined;
@@ -86,7 +86,7 @@ export function AdMonConsole() {
   }
 
   async function resetSession() {
-    if (response) {
+    if (response?.offer) {
       await fetch("/api/reset", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -211,7 +211,7 @@ export function AdMonConsole() {
                   </article>
                 ) : null}
 
-                {!dismissed ? (
+                {response.offer && !dismissed ? (
                   <article className="ad-card">
                     <div className="ad-card-topline">
                       <span className="sponsored-label">
@@ -256,7 +256,7 @@ export function AdMonConsole() {
                           href={response.offer.clickUrl}
                           onClick={() =>
                             setStatus({
-                              clickId: response.offer.clickId,
+                              clickId: response.offer?.clickId ?? "",
                               state: "recorded",
                               paidMon: "0",
                               mode: "monad-testnet"

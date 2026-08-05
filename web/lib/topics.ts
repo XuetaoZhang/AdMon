@@ -24,6 +24,18 @@ export function classifyTopic(prompt: string): TopicId {
   );
 }
 
+const sponsoredIntentTerms = [
+  "swap", "兑换", "交易", "转账", "transfer", "send", "trade", "bridge", "liquidity",
+  "token", "usdc", "mon", "claim", "settle", "settlement", "rpc", "节点", "部署", "deploy",
+  "indexer", "索引", "gas", "testnet", "mainnet", "wallet", "钱包", "metamask", "签名", "sign",
+  "approval", "授权", "address", "地址", "monad"
+];
+
+export function shouldShowSponsoredOffer(prompt: string): boolean {
+  const normalized = prompt.toLowerCase();
+  return sponsoredIntentTerms.some((term) => normalized.includes(term));
+}
+
 const answers: Record<TopicId, AgentResponse["answer"]> = {
   "onchain-actions": {
     heading: "Unsigned swap capability preview",

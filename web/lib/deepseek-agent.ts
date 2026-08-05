@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { classifyTopic } from "./topics";
 
 const topicIdSchema = z.enum(["onchain-actions", "monad-infra", "wallets"]);
 
@@ -91,7 +92,9 @@ Rules:
 - A native-transfer action is always an unsigned preview. Never ask the MCP tool to execute it.
 - Never include advertising, sponsored copy, reward amounts, or instructions to click. A separate AdMon MCP tool supplies the sponsored card after your response.
 - Mention that no wallet signature is requested when the request is ambiguous or security-sensitive.
+- If the user asks what model you are, identify the configured model name supplied by the host instead of substituting a generic transaction-safety description.
 - Keep each checks and receipt item short enough to render as a compact list.
+- Always include at least one checks item and one receipt item, even for a general informational question.
 - Return valid JSON without Markdown fences.`;
 
 function getConfig() {
@@ -101,7 +104,43 @@ function getConfig() {
   return { apiKey, baseUrl, model };
 }
 
-function parseModelContent(content: unknown) {
+function normalizeAnswer(rawAnswer: unknown): z.infer<typeof answerSchema> {
+  if (typeof rawAnswer === "string") {
+    const summary = rawAnswer.trim() || "The agent returned no additional detail.";
+    return {
+      heading: "DeepSeek response",
+      summary,
+      checks: ["No wallet transaction was requested."],
+      receipt: ["Execution: none; informational response only"]
+    };
+  }
+
+  const answer = answerSchema.partial().safeParse(rawAnswer);
+  if (answer.success) {
+    return {
+      heading: answer.data.heading || "DeepSeek response",
+      summary: answer.data.summary || "The agent returned an informational response.",
+      checks: answer.data.checks?.length ? answer.data.checks : ["No wallet transaction was requested."],
+      receipt: answer.data.receipt?.length ? answer.data.receipt : ["Execution: none; informational response only"]
+    };
+  }
+
+  return {
+    heading: "DeepSeek response",
+    summary: "The agent returned an informational response.",
+    checks: ["No wallet transaction was requested."],
+    receipt: ["Execution: none; informational response only"]
+  };
+}
+
+function normalizeMossAction(rawAction: unknown): MossAction {
+  const action = mossActionSchema.safeParse(rawAction);
+  return action.success
+    ? action.data
+    : { kind: "none", reason: "No explicit executable action was requested." };
+}
+
+function parseModelContent(content: unknown, prompt: string) {
   if (typeof content !== "string") {
     throw new Error("DeepSeek returned no text content.");
   }
@@ -111,9 +150,25 @@ function parseModelContent(content: unknown) {
   try {
     parsed = JSON.parse(normalized);
   } catch {
-    throw new Error("DeepSeek returned invalid agent JSON.");
+    return {
+      topicId: classifyTopic(prompt),
+      answer: normalizeAnswer(normalized),
+      mossAction: { kind: "none" as const, reason: "No explicit executable action was requested." }
+    };
   }
-  return agentPayloadSchema.parse(parsed);
+
+  if (!parsed || typeof parsed !== "object") {
+    throw new Error("DeepSeek returned an unsupported agent response.");
+  }
+  const payload = parsed as Record<string, unknown>;
+  const topicId = topicIdSchema.safeParse(payload.topicId).success
+    ? topicIdSchema.parse(payload.topicId)
+    : classifyTopic(prompt);
+  return {
+    topicId,
+    answer: normalizeAnswer(payload.answer),
+    mossAction: normalizeMossAction(payload.mossAction)
+  };
 }
 
 export async function generateWithDeepSeek(prompt: string): Promise<DeepSeekAgentResult> {
@@ -132,10 +187,15 @@ export async function generateWithDeepSeek(prompt: string): Promise<DeepSeekAgen
       body: JSON.stringify({
         model,
         temperature: 0.2,
-        max_tokens: 700,
+        // deepseek-v4-flash may spend the first part of its budget on
+        // reasoning_content. Disable that channel so the user-facing answer
+        // is returned in message.content instead of an empty string.
+        thinking: { type: "disabled" },
+        max_tokens: 1200,
         response_format: { type: "json_object" },
         messages: [
           { role: "system", content: systemPrompt },
+          { role: "system", content: `The host configured model identifier is \"${model}\". Use this identifier for a model-identity question.` },
           { role: "user", content: prompt }
         ]
       }),
@@ -150,7 +210,7 @@ export async function generateWithDeepSeek(prompt: string): Promise<DeepSeekAgen
       choices?: Array<{ message?: { content?: unknown } }>;
     };
     const content = payload.choices?.[0]?.message?.content;
-    return { ...parseModelContent(content), provider: "deepseek", model };
+    return { ...parseModelContent(content, prompt), provider: "deepseek", model };
   } finally {
     clearTimeout(timeout);
   }

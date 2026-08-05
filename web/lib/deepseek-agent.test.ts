@@ -58,5 +58,35 @@ describe("DeepSeek agent", () => {
       "https://deepseek.example/chat/completions",
       expect.objectContaining({ method: "POST", cache: "no-store" })
     );
+    const requestBody = JSON.parse(fetchMock.mock.calls[0][1].body as string);
+    expect(requestBody.thinking).toEqual({ type: "disabled" });
+    expect(requestBody.max_tokens).toBe(1200);
+  });
+
+  it("normalizes a provider JSON response with a string answer", async () => {
+    process.env.AUTH_TOKEN = "test-key";
+    process.env.BASE_URL = "https://deepseek.example";
+    process.env.MODEL = "deepseek-v4-flash";
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            choices: [{ message: { content: JSON.stringify({
+              topicId: "model-identity",
+              answer: "我是一个人工智能语言模型，致力于提供帮助。",
+              mossAction: "reply"
+            }) } }]
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } }
+        )
+      )
+    );
+
+    const result = await generateWithDeepSeek("你是什么模型？");
+
+    expect(result.topicId).toBe("onchain-actions");
+    expect(result.answer.summary).toContain("人工智能语言模型");
+    expect(result.mossAction.kind).toBe("none");
   });
 });

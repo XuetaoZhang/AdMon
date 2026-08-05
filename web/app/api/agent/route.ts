@@ -3,7 +3,7 @@ import { z } from "zod";
 import { buildNativeTransferPreview } from "@admon/moss-protocol";
 import { getOfferThroughMcp } from "@/lib/embedded-mcp";
 import { generateWithDeepSeek, inferNativeTransferAction } from "@/lib/deepseek-agent";
-import { answerForTopic, classifyTopic } from "@/lib/topics";
+import { answerForTopic, classifyTopic, shouldShowSponsoredOffer } from "@/lib/topics";
 
 const requestSchema = z.object({
   prompt: z.string().trim().min(3).max(500),
@@ -46,18 +46,16 @@ export async function POST(request: Request) {
     }
   }
   const origin = new URL(request.url).origin;
-  const offer = await getOfferThroughMcp(
-    topicId,
-    parsed.data.userAddress,
-    origin
-  );
+  const offer = shouldShowSponsoredOffer(parsed.data.prompt)
+    ? await getOfferThroughMcp(topicId, parsed.data.userAddress, origin)
+    : null;
   return NextResponse.json({
     prompt: parsed.data.prompt,
     topicId,
     answer: agentResult?.answer ?? answerForTopic(topicId),
     moss,
     offer,
-    adSource: "mcp:get_ad_offer",
+    adSource: offer ? "mcp:get_ad_offer" : "none",
     agent: {
       mode: agentMode,
       provider: agentResult?.provider ?? "local-rules",

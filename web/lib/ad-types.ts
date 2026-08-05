@@ -37,7 +37,7 @@ export type AdOffer = {
 export type AgentResponse = {
   prompt: string;
   topicId: TopicId;
-  adSource: "mcp:get_ad_offer";
+  adSource: "mcp:get_ad_offer" | "none";
   agent: {
     mode: "deepseek" | "rules-fallback";
     provider: "deepseek" | "local-rules";
@@ -50,7 +50,7 @@ export type AgentResponse = {
     receipt: string[];
   };
   moss: MossSafetyPreview | null;
-  offer: AdOffer;
+  offer: AdOffer | null;
 };
 
 export type ClickStatus = {
