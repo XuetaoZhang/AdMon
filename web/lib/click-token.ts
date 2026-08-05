@@ -6,6 +6,7 @@ const tokenSchema = z.object({
   clickId: z.string().regex(/^0x[0-9a-f]{64}$/),
   user: z.string().regex(/^0x[0-9a-fA-F]{40}$/),
   publisher: z.string().regex(/^0x[0-9a-fA-F]{40}$/),
+  destinationUrl: z.string().url().optional(),
   expiresAt: z.number().int().positive()
 });
 

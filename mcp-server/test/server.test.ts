@@ -7,6 +7,7 @@ import { createAdMonServer } from "../src/server.js";
 const fakeOffer = {
   type: "ad_offer" as const,
   campaignId: 101,
+  creativeId: "creative-101",
   clickId: `0x${"ab".repeat(32)}`,
   topicId: "onchain-actions" as const,
   advertiser: "Testnet advertiser",

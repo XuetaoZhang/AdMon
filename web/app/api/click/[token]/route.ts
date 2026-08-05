@@ -8,6 +8,7 @@ import {
   resetClick
 } from "@/lib/click-store";
 import { verifyClickToken } from "@/lib/click-token";
+import { incrementCampaignClicks } from "@/lib/product-store";
 
 export async function GET(
   request: Request,
@@ -46,6 +47,7 @@ export async function GET(
       expiresAt: payload.expiresAt
     });
     markSettlementSubmitted(payload.clickId, settlement.transactionHash);
+    incrementCampaignClicks(payload.campaignId);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Monad settlement unavailable.";
     markSettlementError(payload.clickId, message);
@@ -55,9 +57,10 @@ export async function GET(
   }
 
   return NextResponse.redirect(
-    new URL(
-      `/sponsor?status=recorded&campaignId=${payload.campaignId}&clickId=${payload.clickId}`,
-      request.url
-    )
+    payload.destinationUrl ||
+      new URL(
+        `/sponsor?status=recorded&campaignId=${payload.campaignId}&clickId=${payload.clickId}`,
+        request.url
+      )
   );
 }

@@ -6,6 +6,7 @@ export type TopicId = z.infer<typeof topicSchema>;
 export const offerSchema = z.object({
   type: z.literal("ad_offer"),
   campaignId: z.number().int().positive(),
+  creativeId: z.string(),
   clickId: z.string(),
   topicId: topicSchema,
   advertiser: z.string(),

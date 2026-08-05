@@ -40,6 +40,11 @@ export function AdMonConsole() {
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
+    const savedWallet = window.localStorage.getItem("admon-user-wallet");
+    if (savedWallet) setWallet(savedWallet);
+  }, []);
+
+  useEffect(() => {
     if (!response || status.state === "paid" || status.chainError) return;
     const clickId = response.offer.clickId;
     let cancelled = false;
@@ -95,24 +100,6 @@ export function AdMonConsole() {
 
   return (
     <main className="app-shell">
-      <header className="topbar">
-        <div className="brand-lockup">
-          <div className="brand-mark">AM</div>
-          <div>
-            <strong>AdMon</strong>
-            <span>Agent advertising, settled on Monad</span>
-          </div>
-        </div>
-        <div className="topbar-actions">
-          <span className="network-pill">
-            <span className="network-dot" /> Monad testnet
-          </span>
-          <button className="icon-button" onClick={resetSession} title="Reset session" type="button">
-            <RefreshCw size={17} />
-          </button>
-        </div>
-      </header>
-
       <div className="workspace">
         <section className="agent-pane">
           <div className="pane-heading">
@@ -120,16 +107,24 @@ export function AdMonConsole() {
               <p className="eyebrow">Publisher console</p>
               <h1>Moss-powered Onchain Agent</h1>
             </div>
-            <label className="wallet-control">
-              <WalletCards size={16} />
-              <span className="sr-only">Reward wallet address</span>
-              <input
-                aria-label="Reward wallet address"
-                onChange={(event) => setWallet(event.target.value)}
-                spellCheck={false}
-                value={wallet}
-              />
-            </label>
+            <div className="demo-controls">
+              <label className="wallet-control">
+                <WalletCards size={16} />
+                <span className="wallet-label-inline">User reward wallet</span>
+                <input
+                  aria-label="User reward wallet"
+                  onChange={(event) => {
+                    setWallet(event.target.value);
+                    window.localStorage.setItem("admon-user-wallet", event.target.value);
+                  }}
+                  spellCheck={false}
+                  value={wallet}
+                />
+              </label>
+              <button className="icon-button" onClick={resetSession} title="Reset session" type="button">
+                <RefreshCw size={17} />
+              </button>
+            </div>
           </div>
 
           <div className="quick-prompts" aria-label="Example prompts">

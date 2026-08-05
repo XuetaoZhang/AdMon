@@ -4,6 +4,7 @@ import { offerSchema, renderOfferMarkdown } from "../src/schema.js";
 const offer = offerSchema.parse({
   type: "ad_offer",
   campaignId: 101,
+  creativeId: "creative-101",
   clickId: `0x${"ab".repeat(32)}`,
   topicId: "onchain-actions",
   advertiser: "Testnet advertiser",

@@ -2,11 +2,13 @@ import { offerSchema, type AdOffer, type TopicId } from "./schema.js";
 
 export type AdMonClientOptions = {
   apiUrl?: string;
+  publisherAddress?: string;
   fetchImpl?: typeof fetch;
 };
 
 export class AdMonClient {
   readonly #apiUrl: string;
+  readonly #publisherAddress?: string;
   readonly #fetch: typeof fetch;
 
   constructor(options: AdMonClientOptions = {}) {
@@ -14,6 +16,8 @@ export class AdMonClient {
       /\/$/,
       ""
     );
+    this.#publisherAddress =
+      options.publisherAddress || process.env.ADMON_PUBLISHER_ADDRESS;
     this.#fetch = options.fetchImpl || fetch;
   }
 
@@ -21,7 +25,11 @@ export class AdMonClient {
     const response = await this.#fetch(`${this.#apiUrl}/api/offers`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ topicId, userAddress })
+      body: JSON.stringify({
+        topicId,
+        userAddress,
+        publisherAddress: this.#publisherAddress
+      })
     });
     if (!response.ok) {
       throw new Error(`AdMon decision API returned HTTP ${response.status}`);

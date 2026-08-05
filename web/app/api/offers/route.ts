@@ -4,7 +4,8 @@ import { createOffer } from "@/lib/offers";
 
 const offerSchema = z.object({
   topicId: z.enum(["onchain-actions", "monad-infra", "wallets"]),
-  userAddress: z.string().regex(/^0x[0-9a-fA-F]{40}$/)
+  userAddress: z.string().regex(/^0x[0-9a-fA-F]{40}$/),
+  publisherAddress: z.string().regex(/^0x[0-9a-fA-F]{40}$/).optional()
 });
 
 export async function POST(request: Request) {
@@ -17,6 +18,11 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json(
-    createOffer(parsed.data.topicId, parsed.data.userAddress, new URL(request.url).origin)
+    createOffer(
+      parsed.data.topicId,
+      parsed.data.userAddress,
+      new URL(request.url).origin,
+      parsed.data.publisherAddress
+    )
   );
 }

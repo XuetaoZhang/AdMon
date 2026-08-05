@@ -3,6 +3,7 @@ export type TopicId = "onchain-actions" | "monad-infra" | "wallets";
 export type AdOffer = {
   type: "ad_offer";
   campaignId: number;
+  creativeId: string;
   clickId: `0x${string}`;
   topicId: TopicId;
   advertiser: string;

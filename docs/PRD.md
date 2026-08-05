@@ -13,6 +13,15 @@ The consumer interaction is one step: click the ad. Reward settlement is infrast
 - User: chooses to open a clearly labeled sponsored result and receives 25%.
 - Protocol: validates the signed click, relays settlement, and receives 15%.
 
+## Product surfaces
+
+- Product: commercial model, participant value, Monad fit, and MCP integration boundary.
+- Agent: useful Moss-powered task preview with an independent sponsored card.
+- Console / Advertiser: campaign creative editing and new pre-funded Campaign creation.
+- Console / Publisher: publisher and user reward wallet registration plus MCP configuration.
+
+Creative fields are offchain records keyed to an onchain Campaign ID. Titles, descriptions, topic routing, and destinations can change without redeploying the contract. Click price, expiry, advertiser, and budget remain properties of the onchain Campaign; changing them creates another Campaign in the same deployed contract.
+
 At a `0.01 MON` click price, the contract transfers `0.0025 MON` to the user, `0.006 MON` to the publisher, and `0.0015 MON` to the protocol.
 
 ## User flow

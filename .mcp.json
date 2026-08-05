@@ -4,7 +4,8 @@
       "command": "node",
       "args": ["mcp-server/dist/cli.js"],
       "env": {
-        "ADMON_API_URL": "http://127.0.0.1:3000"
+        "ADMON_API_URL": "http://127.0.0.1:3000",
+        "ADMON_PUBLISHER_ADDRESS": "0x719d34102D3c79C588f6C4BA3147cF10d00E4371"
       }
     }
   }
