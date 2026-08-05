@@ -40,7 +40,7 @@ export default function Home() {
 
         <div className="hero-product" aria-label="AdMon product flow">
           <div className="hero-agent-window">
-            <div className="window-bar"><span /><span /><span /><b>Moss agent</b></div>
+            <div className="window-bar"><span /><span /><span /><b>AdMon agent</b></div>
             <div className="agent-line user-line">Find a safe way to swap MON</div>
             <div className="agent-line answer-line">
               <ShieldCheck size={15} /> Route simulated. No transaction was sent.

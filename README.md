@@ -18,7 +18,7 @@ An agent publisher integrates the AdMon decision API and card renderer into an e
 ## Product surfaces
 
 - `/` presents the network model, Monad settlement advantages, and integration boundary.
-- `/demo` runs the Moss-powered reference agent and renders the structured MCP offer as a native card.
+- `/demo` runs the DeepSeek-powered reference agent and renders the structured MCP offer as a native card.
 - `/dashboard` manages campaign creatives, funds new onchain campaigns, registers payout wallets, and generates publisher MCP configuration.
 
 Campaign titles, descriptions, topics, and destinations are managed offchain and linked to an onchain campaign ID. Editing creative content does not require a transaction. Funding a campaign calls `createCampaign()` on the existing AdMon contract; it never deploys another contract.
@@ -33,6 +33,16 @@ npm run dev --workspace web
 ```
 
 Open `http://localhost:3000`. The reference publisher host calls the same MCP offer tool used by external agent hosts, and the console lets publishers register the wallet included in newly issued click links.
+
+The reference agent calls DeepSeek from the server. Configure the provider in `web/.env.local` so the API key never reaches the browser:
+
+```bash
+BASE_URL=https://api.deepseek.com
+AUTH_TOKEN=your-deepseek-api-key
+MODEL=your-deepseek-model
+```
+
+If the provider is temporarily unavailable, the host falls back to a deterministic local safety preview while keeping the MCP offer and settlement path available.
 
 Run the contract verification separately:
 

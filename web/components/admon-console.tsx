@@ -4,6 +4,7 @@ import {
   Check,
   ChevronRight,
   ExternalLink,
+  FileCheck2,
   LoaderCircle,
   RefreshCw,
   Send,
@@ -19,7 +20,7 @@ import type { AgentResponse, ClickStatus } from "@/lib/ad-types";
 const promptOptions = [
   "Swap exactly 0.1 MON for USDC. Simulate first and do not send.",
   "Which Monad RPC is suitable for a latency-sensitive agent?",
-  "Prepare a safe wallet action and explain what I will sign."
+  "Prepare a 0.01 MON transfer to 0xd7B64D086B397d25368B2CD3db4BBb389c494DB5 without sending."
 ];
 
 const defaultWallet = "0x6BD73C2f2ae05f638E4ec39a93AA27ac8ba2F5D6";
@@ -105,7 +106,7 @@ export function AdMonConsole() {
           <div className="pane-heading">
             <div>
               <p className="eyebrow">Publisher console</p>
-              <h1>Moss-powered Onchain Agent</h1>
+              <h1>AdMon Onchain Agent</h1>
             </div>
             <div className="demo-controls">
               <label className="wallet-control">
@@ -154,7 +155,7 @@ export function AdMonConsole() {
 
             {loading ? (
               <div className="loading-row">
-                <LoaderCircle className="spin" size={18} /> Moss is simulating the request
+                <LoaderCircle className="spin" size={18} /> DeepSeek is preparing the response
               </div>
             ) : null}
 
@@ -163,7 +164,10 @@ export function AdMonConsole() {
                 <div className="user-message">{response.prompt}</div>
                 <article className="agent-answer">
                   <div className="answer-label">
-                    <ShieldCheck size={16} /> Neutral action preview
+                    <ShieldCheck size={16} /> Neutral agent response
+                    <span className={response.agent.mode === "deepseek" ? "agent-runtime live" : "agent-runtime"}>
+                      {response.agent.mode === "deepseek" ? response.agent.model : "Local fallback"}
+                    </span>
                   </div>
                   <h2>{response.answer.heading}</h2>
                   <p>{response.answer.summary}</p>
@@ -176,7 +180,7 @@ export function AdMonConsole() {
                   </ul>
                   <div className="receipt-block">
                     <div>
-                      <span>Moss action receipt</span>
+                      <span>Agent action receipt</span>
                       <span>Unsigned preview</span>
                     </div>
                     {response.answer.receipt.map((line) => (
@@ -184,6 +188,28 @@ export function AdMonConsole() {
                     ))}
                   </div>
                 </article>
+
+                {response.moss ? (
+                  <article className="moss-card">
+                    <div className="moss-card-heading">
+                      <span><ShieldCheck size={15} /> Moss capability</span>
+                      <strong>Unsigned preview</strong>
+                    </div>
+                    <p>{response.moss.summary}</p>
+                    <div className="moss-transaction-grid">
+                      <span>From <code>{response.moss.transaction.from}</code></span>
+                      <span>To <code>{response.moss.transaction.to}</code></span>
+                      <span>Value <code>{response.moss.params.amountMon} MON</code></span>
+                      <span>Risk <code>{response.moss.risk.join(" · ")}</code></span>
+                    </div>
+                    <div className="moss-receipt-status">
+                      <FileCheck2 size={15} />
+                      <span>{response.moss.receipt.verifier}</span>
+                      <strong>Awaiting execution</strong>
+                    </div>
+                    <p className="moss-note">{response.moss.receipt.message}</p>
+                  </article>
+                ) : null}
 
                 {!dismissed ? (
                   <article className="ad-card">
@@ -274,7 +300,7 @@ export function AdMonConsole() {
             <input
               aria-label="Ask the onchain agent"
               onChange={(event) => setPrompt(event.target.value)}
-              placeholder="Ask Moss to inspect a Monad action"
+              placeholder="Ask the agent to inspect a Monad action"
               value={prompt}
             />
             <button disabled={loading} title="Send" type="submit">

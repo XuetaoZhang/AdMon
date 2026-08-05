@@ -350,6 +350,23 @@ input:focus-visible {
   text-transform: uppercase;
 }
 
+.agent-runtime {
+  margin-left: 4px;
+  padding: 3px 6px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  color: var(--muted);
+  background: var(--surface);
+  font-size: 9px;
+  font-style: normal;
+}
+
+.agent-runtime.live {
+  border-color: #b9d7c8;
+  color: var(--green);
+  background: var(--green-soft);
+}
+
 .agent-answer h2 {
   margin: 10px 0 8px;
   font-size: 20px;
@@ -405,6 +422,87 @@ input:focus-visible {
 .receipt-block code {
   font-size: 12px;
   white-space: normal;
+}
+
+.moss-card {
+  max-width: 760px;
+  margin-top: 18px;
+  padding: 14px 15px;
+  border: 1px solid #b8c9e1;
+  border-left: 3px solid var(--blue);
+  background: #f3f7fc;
+}
+
+.moss-card-heading,
+.moss-receipt-status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.moss-card-heading {
+  justify-content: space-between;
+  color: var(--blue);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.moss-card-heading strong {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.moss-card > p {
+  margin: 9px 0 12px;
+  color: #4e5852;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.moss-transaction-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px 14px;
+}
+
+.moss-transaction-grid span {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+  color: var(--muted);
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.moss-transaction-grid code {
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.moss-receipt-status {
+  margin-top: 13px;
+  padding-top: 11px;
+  border-top: 1px solid #d8e2ef;
+  color: var(--blue);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.moss-receipt-status strong {
+  margin-left: auto;
+  color: var(--amber);
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.moss-note {
+  margin-bottom: 0 !important;
+  color: var(--muted) !important;
+  font-size: 10px !important;
 }
 
 .ad-card {
@@ -1215,6 +1313,7 @@ input:focus-visible {
 
 .hero-agent-window {
   width: min(620px, 100%);
+  margin: 0 auto;
   min-height: 370px;
   padding-bottom: 20px;
   border: 1px solid #bfc8c1;
@@ -1264,13 +1363,17 @@ input:focus-visible {
 .hero-ad-card button { min-height: 30px; padding: 0 10px; border: 0; border-radius: 3px; color: #fff; background: var(--amber); font-size: 10px; font-weight: 800; }
 
 .settlement-rail {
-  width: 85%;
+  width: min(620px, 100%);
   margin: -1px auto 0;
   min-height: 76px;
+  padding: 0 10px;
   display: grid;
-  grid-template-columns: auto 1fr auto 1fr minmax(190px, auto);
+  grid-template-columns:
+    minmax(96px, 1fr) 18px
+    minmax(116px, 1.1fr) 18px
+    minmax(190px, 1.5fr);
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   border-top: 1px solid var(--line);
   color: var(--muted);
   background: #fff;
@@ -1278,10 +1381,10 @@ input:focus-visible {
   text-transform: uppercase;
 }
 
-.settlement-rail > div:not(.settlement-payouts) { display: flex; align-items: center; gap: 6px; color: var(--green); font-weight: 800; }
+.settlement-rail > div:not(.settlement-payouts) { display: flex; align-items: center; gap: 6px; color: var(--green); font-weight: 800; white-space: nowrap; }
 .settlement-rail > i { height: 1px; background: var(--line); }
 .settlement-payouts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; }
-.settlement-payouts span { padding: 7px 5px; text-align: center; background: var(--paper); }
+.settlement-payouts span { padding: 7px 5px; text-align: center; white-space: nowrap; background: var(--paper); }
 
 .value-band,
 .integration-band,

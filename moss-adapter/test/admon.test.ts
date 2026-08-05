@@ -1,7 +1,11 @@
-import { type MossRuntime, Registry } from "@themoss/core";
+import { type Change, type MossRuntime, Registry } from "@themoss/core";
 import { getAddress } from "viem";
 import { describe, expect, it, vi } from "vitest";
-import { AdMonProtocol } from "../src/index.js";
+import {
+  AdMonProtocol,
+  AdMonSafetyProtocol,
+  buildNativeTransferPreview
+} from "../src/index.js";
 
 const ACCOUNT = getAddress("0xcccccccccccccccccccccccccccccccccccccccc");
 const ADVERTISER = getAddress("0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
@@ -49,6 +53,54 @@ describe("AdMon Moss Protocol", () => {
     expect(result).toMatchObject({
       kind: "query",
       data: { account: ACCOUNT, amountWei: "0", token: "native" }
+    });
+  });
+
+  it("builds a bounded unsigned transfer capability", async () => {
+    const preview = await buildNativeTransferPreview({
+      account: ACCOUNT,
+      recipient: ADVERTISER,
+      amountMon: "0.01"
+    });
+
+    expect(preview).toMatchObject({
+      state: "capability-ready",
+      protocol: "admon-safety",
+      method: "nativeTransfer",
+      risk: ["fundOut"],
+      params: { recipient: ADVERTISER, amountMon: "0.01" },
+      transaction: {
+        from: ACCOUNT,
+        to: ADVERTISER,
+        data: "0x",
+        value: "0x2386f26fc10000"
+      },
+      receipt: { state: "awaiting-execution", verifier: "nativeTransferReceipt" }
+    });
+  });
+
+  it("verifies a native-transfer receipt through Moss", async () => {
+    const registry = new Registry(runtime(vi.fn())).use(AdMonSafetyProtocol);
+    const capability = await registry.action("admon-safety", "nativeTransfer", ACCOUNT, {
+      recipient: ADVERTISER,
+      amountMon: "0.01"
+    });
+    if (capability.kind !== "capability") throw new Error("expected Capability");
+    const change = {
+      kind: "nativeTransfer",
+      from: ACCOUNT,
+      to: ADVERTISER,
+      value: "10000000000000000"
+    } satisfies Change;
+
+    expect(registry.parseReceipt(capability, [change])).toMatchObject({
+      protocol: "admon-safety",
+      outcome: {
+        operation: "native-transfer",
+        from: ACCOUNT,
+        to: ADVERTISER,
+        value: "10000000000000000"
+      }
     });
   });
 });

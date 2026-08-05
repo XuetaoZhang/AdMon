@@ -28,7 +28,7 @@ const answers: Record<TopicId, AgentResponse["answer"]> = {
   "onchain-actions": {
     heading: "Unsigned swap capability preview",
     summary:
-      "This preview defines the contract Moss must satisfy before any wallet signs or broadcasts the action.",
+      "This preview defines the checks an agent should satisfy before any wallet signs or broadcasts the action.",
     checks: [
       "Intent fixed: swap exactly 0.1 MON for USDC",
       "Maximum slippage: 0.50%",

@@ -16,7 +16,7 @@ The consumer interaction is one step: click the ad. Reward settlement is infrast
 ## Product surfaces
 
 - Product: commercial model, participant value, Monad fit, and MCP integration boundary.
-- Agent: useful Moss-powered task preview with an independent sponsored card.
+- Agent: useful DeepSeek-generated task preview with an independent sponsored card and a read-only Moss protocol boundary.
 - Console / Advertiser: campaign creative editing and new pre-funded Campaign creation.
 - Console / Publisher: publisher and user reward wallet registration plus MCP configuration.
 
@@ -39,7 +39,7 @@ At a `0.01 MON` click price, the contract transfers `0.0025 MON` to the user, `0
 
 Required:
 
-- Useful Moss-powered agent experience.
+- Useful DeepSeek-powered agent experience.
 - Clearly independent Sponsored card.
 - Editable payout address without wallet connection.
 - One outbound action to the advertiser destination.

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { buildNativeTransferPreview } from "@admon/moss-protocol";
 import { getOfferThroughMcp } from "@/lib/embedded-mcp";
+import { generateWithDeepSeek, inferNativeTransferAction } from "@/lib/deepseek-agent";
 import { answerForTopic, classifyTopic } from "@/lib/topics";
 
 const requestSchema = z.object({
@@ -17,7 +19,32 @@ export async function POST(request: Request) {
     );
   }
 
-  const topicId = classifyTopic(parsed.data.prompt);
+  let agentResult: Awaited<ReturnType<typeof generateWithDeepSeek>> | null = null;
+  let agentMode: "deepseek" | "rules-fallback" = "deepseek";
+  const fallbackMossAction = inferNativeTransferAction(parsed.data.prompt);
+  try {
+    agentResult = await generateWithDeepSeek(parsed.data.prompt);
+  } catch (error) {
+    // Keep the demo usable when the model provider is unavailable; never block
+    // the independent MCP offer and click-settlement path on an LLM outage.
+    console.error("DeepSeek agent unavailable; using local preview fallback.", error);
+    agentMode = "rules-fallback";
+  }
+
+  const topicId = agentResult?.topicId ?? classifyTopic(parsed.data.prompt);
+  let moss = null;
+  const mossAction = agentResult?.mossAction ?? fallbackMossAction;
+  if (mossAction.kind === "native-transfer") {
+    try {
+      moss = await buildNativeTransferPreview({
+        account: parsed.data.userAddress,
+        recipient: mossAction.recipient,
+        amountMon: mossAction.amountMon
+      });
+    } catch (error) {
+      console.error("Moss rejected the requested action preview.", error);
+    }
+  }
   const origin = new URL(request.url).origin;
   const offer = await getOfferThroughMcp(
     topicId,
@@ -27,8 +54,14 @@ export async function POST(request: Request) {
   return NextResponse.json({
     prompt: parsed.data.prompt,
     topicId,
-    answer: answerForTopic(topicId),
+    answer: agentResult?.answer ?? answerForTopic(topicId),
+    moss,
     offer,
-    adSource: "mcp:get_ad_offer"
+    adSource: "mcp:get_ad_offer",
+    agent: {
+      mode: agentMode,
+      provider: agentResult?.provider ?? "local-rules",
+      model: agentResult?.model ?? null
+    }
   });
 }
