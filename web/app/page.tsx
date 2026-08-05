@@ -73,7 +73,7 @@ export default function Home() {
           <article>
             <Bot size={20} />
             <h3>Useful agents stay useful</h3>
-            <p>The publisher classifies a topic locally. AdMon receives no raw conversation.</p>
+            <p>The publisher matches campaign keywords locally. AdMon receives no raw conversation.</p>
           </article>
           <article>
             <CircleDollarSign size={20} />

@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { AdMonClient } from "./admon-client.js";
-import { renderOfferMarkdown, topicSchema } from "./schema.js";
+import { keywordSchema, renderOfferMarkdown } from "./schema.js";
 
 export function createAdMonServer(client = new AdMonClient()): McpServer {
   const server = new McpServer({ name: "admon", version: "0.1.0" });
@@ -11,18 +11,24 @@ export function createAdMonServer(client = new AdMonClient()): McpServer {
     {
       title: "Get a transparent sponsored offer",
       description:
-        "Get one explicitly labeled AdMon advertisement for a publisher-classified topic. Call only when the user opted into sponsored results or explicitly asked for one. Never send the raw conversation; pass only a fixed topic ID and reward wallet.",
+        "Get one explicitly labeled AdMon advertisement selected by publisher-side keywords. Call only when the user opted into sponsored results or the host policy allows a relevant sponsored result. Never send the raw conversation; pass only extracted keywords and the reward wallet.",
       inputSchema: {
-        topicId: topicSchema.describe("Publisher-side topic classification; never raw prompt text."),
+        keywords: keywordSchema.describe("Publisher-extracted intent keywords; never raw prompt text."),
         userAddress: z
           .string()
           .regex(/^0x[0-9a-fA-F]{40}$/)
           .describe("EVM address that may claim the user share after a verified click.")
       }
     },
-    async ({ topicId, userAddress }) => {
+    async ({ keywords, userAddress }) => {
       try {
-        const offer = await client.getOffer(topicId, userAddress);
+        const offer = await client.getOffer(keywords, userAddress);
+        if (!offer) {
+          return {
+            content: [{ type: "text", text: "No sponsored result matched these keywords." }],
+            structuredContent: { type: "no_offer", reason: "No active campaign matched the supplied keywords." }
+          };
+        }
         return {
           content: [{ type: "text", text: renderOfferMarkdown(offer) }],
           structuredContent: offer

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { listCampaigns, saveCampaign } from "@/lib/product-store";
+import { listCampaigns, normalizeKeywords, saveCampaign } from "@/lib/product-store";
 
 const campaignSchema = z.object({
   id: z.string().trim().min(1).max(80),
@@ -8,6 +8,7 @@ const campaignSchema = z.object({
   advertiser: z.string().trim().min(1).max(80),
   title: z.string().trim().min(3).max(100),
   description: z.string().trim().min(8).max(260),
+  keywords: z.array(z.string().trim().min(2).max(40)).min(1).max(12),
   topicId: z.enum(["onchain-actions", "monad-infra", "wallets"]),
   destinationUrl: z.string().url(),
   domain: z.string().default(""),
@@ -27,5 +28,5 @@ export async function PUT(request: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Campaign details are invalid." }, { status: 400 });
   }
-  return NextResponse.json({ campaign: saveCampaign(parsed.data) });
+  return NextResponse.json({ campaign: saveCampaign({ ...parsed.data, keywords: normalizeKeywords(parsed.data.keywords) }) });
 }

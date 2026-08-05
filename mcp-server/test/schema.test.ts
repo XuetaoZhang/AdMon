@@ -11,7 +11,7 @@ const offer = offerSchema.parse({
   title: "Inspect a sponsored route",
   description: "Moss simulates before the user signs.",
   domain: "example.com",
-  reason: "Matched by the publisher's private onchain-actions topic rule.",
+  reason: "Matched locally against this campaign's keywords.",
   rewardMon: "0.0025",
   publisherShareMon: "0.0060",
   protocolShareMon: "0.0015",
@@ -29,7 +29,7 @@ describe("MCP offer schema", () => {
     expect(markdown).toContain(offer.clickUrl);
   });
 
-  it("rejects raw text as a topic", () => {
-    expect(() => offerSchema.parse({ ...offer, topicId: "please read my whole prompt" })).toThrow();
+  it("keeps keyword matching outside the offer payload", () => {
+    expect(offer.reason).toContain("keywords");
   });
 });

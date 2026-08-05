@@ -9,7 +9,7 @@ An agent publisher integrates the AdMon decision API and card renderer into an e
 - Native-MON campaign contract with 16 budget shards and O(1) click settlement.
 - Direct user, publisher, and protocol payouts without wallet prompts or later withdrawal steps.
 - Replay, expiry, relayer, budget, withdrawal, and rejecting-recipient recovery tests.
-- Publisher application with private topic routing, an independent sponsored card, and a one-time redirect.
+- Publisher application with private keyword matching, an independent sponsored card, and a one-time redirect.
 - Portable stdio MCP server with structured output and Markdown fallback.
 - Read-only Moss Protocol adapter for campaign terms and exceptional payout-recovery balances.
 - Commercial product surface, live reference agent, and advertiser/publisher operations console.
@@ -21,7 +21,7 @@ An agent publisher integrates the AdMon decision API and card renderer into an e
 - `/demo` runs the DeepSeek-powered reference agent and renders the structured MCP offer as a native card.
 - `/dashboard` manages campaign creatives, funds new onchain campaigns, registers payout wallets, and generates publisher MCP configuration.
 
-Campaign titles, descriptions, topics, and destinations are managed offchain and linked to an onchain campaign ID. Editing creative content does not require a transaction. Funding a campaign calls `createCampaign()` on the existing AdMon contract; it never deploys another contract.
+Campaign titles, descriptions, match keywords, and destinations are managed offchain and linked to an onchain campaign ID. Editing creative content or keywords does not require a transaction. Funding a campaign calls `createCampaign()` on the existing AdMon contract; it never deploys another contract.
 
 ## Run locally
 

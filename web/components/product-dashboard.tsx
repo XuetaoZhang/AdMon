@@ -39,6 +39,7 @@ const emptyCampaign: ProductCampaign = {
   advertiser: "",
   title: "",
   description: "",
+  keywords: [],
   topicId: "onchain-actions",
   destinationUrl: "https://",
   domain: "",
@@ -138,6 +139,7 @@ export function ProductDashboard() {
     setSaving(true);
     setError("");
     try {
+      if (!draft.keywords.length) throw new Error("Add at least one campaign keyword.");
       const response = await fetch("/api/admin/campaigns", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -163,6 +165,7 @@ export function ProductDashboard() {
     setError("");
     setNotice("");
     try {
+      if (!draft.keywords.length) throw new Error("Add at least one campaign keyword.");
       const ethereum = (window as unknown as { ethereum?: BrowserEthereum }).ethereum;
       if (!ethereum) throw new Error("No EVM wallet was found in this browser.");
 
@@ -296,7 +299,7 @@ export function ProductDashboard() {
             </div>
             <div className="campaign-table" role="table">
               <div className="campaign-table-head" role="row">
-                <span>Creative</span><span>Topic</span><span>Reward</span><span>Clicks</span><span>Status</span><span />
+                <span>Creative</span><span>Keywords</span><span>Reward</span><span>Clicks</span><span>Status</span><span />
               </div>
               {campaigns.map((campaign) => (
                 <div className="campaign-row" role="row" key={campaign.id}>
@@ -304,7 +307,7 @@ export function ProductDashboard() {
                     <span>{campaign.advertiser.slice(0, 1)}</span>
                     <div><strong>{campaign.title}</strong><small>#{campaign.campaignId} · {campaign.domain}</small></div>
                   </div>
-                  <code>{campaign.topicId}</code>
+                  <code>{campaign.keywords.join(", ")}</code>
                   <strong>{campaign.clickRewardMon} MON</strong>
                   <span>{campaign.clicks}</span>
                   <span className={`status-chip ${campaign.status}`}>{campaign.status}</span>
@@ -370,7 +373,7 @@ export function ProductDashboard() {
             </div>
             <div className="form-grid">
               <label><span>Advertiser</span><input required value={draft.advertiser} onChange={(event) => setDraft({ ...draft, advertiser: event.target.value })} /></label>
-              <label><span>Topic</span><select value={draft.topicId} onChange={(event) => setDraft({ ...draft, topicId: event.target.value as ProductCampaign["topicId"] })}><option value="onchain-actions">Onchain actions</option><option value="monad-infra">Monad infrastructure</option><option value="wallets">Wallets</option></select></label>
+              <label className="span-two"><span>Match keywords</span><input required placeholder="swap, liquidity, usdc" value={draft.keywords.join(", ")} onChange={(event) => setDraft({ ...draft, keywords: event.target.value.split(/[,，\n]/g).map((keyword) => keyword.trim()).filter(Boolean) })} /></label>
               <label className="span-two"><span>Title</span><input required value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} /></label>
               <label className="span-two"><span>Description</span><textarea required value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} /></label>
               <label className="span-two"><span>Destination URL</span><input required type="url" value={draft.destinationUrl} onChange={(event) => setDraft({ ...draft, destinationUrl: event.target.value })} /></label>

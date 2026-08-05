@@ -1,15 +1,15 @@
 import { createHash, randomUUID } from "node:crypto";
-import type { AdOffer, TopicId } from "./ad-types";
+import type { AdOffer } from "./ad-types";
 import { signClickToken } from "./click-token";
-import { getCampaignForTopic, getPublisherProfile } from "./product-store";
+import type { ProductCampaign } from "./product-store";
+import { getPublisherProfile } from "./product-store";
 
 export function createOffer(
-  topicId: TopicId,
+  campaign: ProductCampaign,
   userAddress: string,
   origin: string,
   requestedPublisher?: string
 ): AdOffer {
-  const campaign = getCampaignForTopic(topicId);
   const publisherAddress = requestedPublisher || getPublisherProfile().wallet;
   const clickId = `0x${createHash("sha256")
     .update(randomUUID())
@@ -39,8 +39,8 @@ export function createOffer(
     disclosure: "Sponsored result · Settled on Monad · Click reward, not proof of attention",
     environment: "monad-testnet",
     clickId,
-    topicId,
+    topicId: campaign.topicId,
     clickUrl: `${origin}/api/click/${token}`,
-    reason: `Matched by the publisher's private ${topicId} topic rule; the raw prompt was not sent to AdMon.`
+    reason: "Matched locally against this campaign's keywords; the raw prompt was not sent to AdMon."
   };
 }

@@ -2,7 +2,7 @@
 
 ## Product
 
-AdMon is an advertising network for AI agent publishers. Publishers request an offer for a privately classified topic and render it as an independent sponsored card. A valid click opens the advertiser destination and triggers transparent native-MON revenue sharing on Monad.
+AdMon is an advertising network for AI agent publishers. Publishers match a campaign against advertiser-defined keywords and render it as an independent sponsored card. A valid click opens the advertiser destination and triggers transparent native-MON revenue sharing on Monad.
 
 The consumer interaction is one step: click the ad. Reward settlement is infrastructure work and must not interrupt the user with a wallet connection, signature, transaction confirmation, or later withdrawal.
 
@@ -20,14 +20,14 @@ The consumer interaction is one step: click the ad. Reward settlement is infrast
 - Console / Advertiser: campaign creative editing and new pre-funded Campaign creation.
 - Console / Publisher: publisher and user reward wallet registration plus MCP configuration.
 
-Creative fields are offchain records keyed to an onchain Campaign ID. Titles, descriptions, topic routing, and destinations can change without redeploying the contract. Click price, expiry, advertiser, and budget remain properties of the onchain Campaign; changing them creates another Campaign in the same deployed contract.
+Creative fields are offchain records keyed to an onchain Campaign ID. Titles, descriptions, match keywords, and destinations can change without redeploying the contract. Click price, expiry, advertiser, and budget remain properties of the onchain Campaign; changing them creates another Campaign in the same deployed contract.
 
 At a `0.01 MON` click price, the contract transfers `0.0025 MON` to the user, `0.006 MON` to the publisher, and `0.0015 MON` to the protocol.
 
 ## User flow
 
 1. The user asks the publisher's agent a normal question.
-2. The publisher classifies the topic locally and requests an AdMon offer through MCP or HTTP.
+2. The publisher matches the prompt locally against advertiser-defined keywords and requests the selected AdMon offer through MCP or HTTP.
 3. The agent answer renders normally; the sponsored card appears separately with advertiser, reason, destination, disclosure, and reward.
 4. The user opens the sponsored link.
 5. The redirect verifies the signed, expiring, one-time token and records the click.
@@ -80,7 +80,7 @@ The function uses a reentrancy guard and checks-effects-interactions. If a recip
 
 ## MCP and privacy
 
-`get_ad_offer` receives a topic ID and payout address, not the raw conversation. The publisher owns topic classification. MCP returns structured ad data plus a Markdown fallback; the host owns tool invocation and rendering.
+`get_ad_offer` receives extracted match keywords and a payout address, not the raw conversation. The publisher owns prompt matching. MCP returns structured ad data plus a Markdown fallback; the host owns tool invocation and rendering.
 
 Ad copy is untrusted display data. It cannot add agent instructions, request tool calls, or merge into the neutral answer.
 

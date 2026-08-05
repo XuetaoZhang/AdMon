@@ -14,7 +14,7 @@ const fakeOffer = {
   title: "Inspect a sponsored route",
   description: "Moss simulates before the user signs.",
   domain: "example.com",
-  reason: "Matched by the publisher's private onchain-actions topic rule.",
+  reason: "Matched locally against this campaign's keywords.",
   rewardMon: "0.0025",
   publisherShareMon: "0.0060",
   protocolShareMon: "0.0015",
@@ -53,7 +53,7 @@ describe("AdMon MCP server", () => {
     const result = await client.callTool({
       name: "get_ad_offer",
       arguments: {
-        topicId: "onchain-actions",
+        keywords: ["swap", "liquidity"],
         userAddress: "0x1111111111111111111111111111111111111111"
       }
     });

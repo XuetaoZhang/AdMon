@@ -1,4 +1,4 @@
-import { offerSchema, type AdOffer, type TopicId } from "./schema.js";
+import { keywordSchema, offerSchema, type AdOffer } from "./schema.js";
 
 export type AdMonClientOptions = {
   apiUrl?: string;
@@ -21,16 +21,18 @@ export class AdMonClient {
     this.#fetch = options.fetchImpl || fetch;
   }
 
-  async getOffer(topicId: TopicId, userAddress: string): Promise<AdOffer> {
+  async getOffer(keywords: readonly string[], userAddress: string): Promise<AdOffer | null> {
+    const normalizedKeywords = keywordSchema.parse(keywords);
     const response = await this.#fetch(`${this.#apiUrl}/api/offers`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        topicId,
+        keywords: normalizedKeywords,
         userAddress,
         publisherAddress: this.#publisherAddress
       })
     });
+    if (response.status === 204) return null;
     if (!response.ok) {
       throw new Error(`AdMon decision API returned HTTP ${response.status}`);
     }

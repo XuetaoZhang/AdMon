@@ -10,7 +10,7 @@
 
 1. Open the Moss-powered reference agent and submit the onchain-action prompt.
 2. Show the neutral unsigned-action preview, followed by the separate Sponsored card.
-3. Point out the advertiser, destination, private topic-match reason, disclosure, and `0.0025 MON` click reward.
+3. Point out the advertiser, destination, private keyword-match reason, disclosure, and `0.0025 MON` click reward.
 4. Click `Visit sponsor` once. The advertiser destination opens immediately; no wallet connection or confirmation appears.
 5. Return to the agent page. The card changes briefly to `Sending MON reward`, then to `+0.0025 MON sent` after Monad finality.
 6. Refresh the user and publisher wallet balances. The same transaction adds `0.0025 MON` to the user and `0.006 MON` to the publisher.

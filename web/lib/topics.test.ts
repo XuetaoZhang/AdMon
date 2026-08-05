@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { answerForTopic, classifyTopic } from "./topics";
 
-describe("publisher-side topic mapping", () => {
-  it("maps prompts into fixed topic IDs without returning raw text", () => {
+describe("publisher-side fallback classification", () => {
+  it("maps onchain prompts into internal categories without returning raw text", () => {
     expect(classifyTopic("Which Monad RPC should I use?")).toBe("monad-infra");
     expect(classifyTopic("Help me inspect a wallet signature")).toBe("wallets");
     expect(classifyTopic("Swap 0.1 MON for USDC")).toBe("onchain-actions");

@@ -3,7 +3,8 @@ import { z } from "zod";
 import { buildNativeTransferPreview } from "@admon/moss-protocol";
 import { getOfferThroughMcp } from "@/lib/embedded-mcp";
 import { generateWithDeepSeek, inferNativeTransferAction } from "@/lib/deepseek-agent";
-import { answerForTopic, classifyTopic, shouldShowSponsoredOffer } from "@/lib/topics";
+import { answerForTopic, classifyTopic } from "@/lib/topics";
+import { findCampaignForPrompt } from "@/lib/product-store";
 
 const requestSchema = z.object({
   prompt: z.string().trim().min(3).max(500),
@@ -46,8 +47,11 @@ export async function POST(request: Request) {
     }
   }
   const origin = new URL(request.url).origin;
-  const offer = shouldShowSponsoredOffer(parsed.data.prompt)
-    ? await getOfferThroughMcp(topicId, parsed.data.userAddress, origin)
+  // Campaign keywords are matched inside the publisher host. The MCP tool
+  // receives only the selected creative ID, never the user prompt.
+  const matchedCampaign = findCampaignForPrompt(parsed.data.prompt);
+  const offer = matchedCampaign
+    ? await getOfferThroughMcp(matchedCampaign.id, parsed.data.userAddress, origin)
     : null;
   return NextResponse.json({
     prompt: parsed.data.prompt,

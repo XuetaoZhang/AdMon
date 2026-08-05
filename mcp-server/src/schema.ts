@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const topicSchema = z.enum(["onchain-actions", "monad-infra", "wallets"]);
+export const keywordSchema = z.array(z.string().trim().min(2).max(40)).min(1).max(12);
 export type TopicId = z.infer<typeof topicSchema>;
 
 export const offerSchema = z.object({

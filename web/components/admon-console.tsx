@@ -211,79 +211,81 @@ export function AdMonConsole() {
                   </article>
                 ) : null}
 
-                {response.offer && !dismissed ? (
-                  <article className="ad-card">
-                    <div className="ad-card-topline">
-                      <span className="sponsored-label">
-                        <Sparkles size={14} /> Sponsored
-                      </span>
-                      <button
-                        className="dismiss-button"
-                        onClick={() => setDismissed(true)}
-                        title="Dismiss advertisement"
-                        type="button"
-                      >
-                        <X size={16} />
-                      </button>
-                    </div>
-                    <div className="ad-card-body">
-                      <div className="advertiser-mark">{response.offer.advertiser.slice(0, 1)}</div>
-                      <div>
-                        <p className="advertiser-name">{response.offer.advertiser}</p>
-                        <h3>{response.offer.title}</h3>
-                        <p>{response.offer.description}</p>
-                      </div>
-                    </div>
-                    <div className="ad-meta">
-                      <span>{response.offer.domain}</span>
-                      <span>{response.offer.reason}</span>
-                    </div>
-                    <div className="ad-action-row">
-                      <div>
-                        <span>User click reward</span>
-                        <strong>+{response.offer.rewardMon} MON</strong>
-                      </div>
-                      {status.state === "paid" ? (
-                        <span className="payout-confirmation">
-                          <Check size={15} /> +{status.paidMon} MON sent
+                {response.offer ? (
+                  dismissed ? (
+                    <button className="restore-ad" onClick={() => setDismissed(false)} type="button">
+                      Show dismissed sponsored result
+                    </button>
+                  ) : (
+                    <article className="ad-card">
+                      <div className="ad-card-topline">
+                        <span className="sponsored-label">
+                          <Sparkles size={14} /> Sponsored
                         </span>
-                      ) : status.state === "recorded" || status.state === "proposed" ? (
-                        <span className="payout-confirmation">
-                          <LoaderCircle className="spin" size={15} /> Sending reward
-                        </span>
-                      ) : (
-                        <a
-                          href={response.offer.clickUrl}
-                          onClick={() =>
-                            setStatus({
-                              clickId: response.offer?.clickId ?? "",
-                              state: "recorded",
-                              paidMon: "0",
-                              mode: "monad-testnet"
-                            })
-                          }
-                          rel="noreferrer"
-                          target="_blank"
+                        <button
+                          className="dismiss-button"
+                          onClick={() => setDismissed(true)}
+                          title="Dismiss advertisement"
+                          type="button"
                         >
-                          Visit sponsor <ExternalLink size={15} />
-                        </a>
-                      )}
-                    </div>
-                    {status.state === "recorded" || status.state === "proposed" ? (
-                      <p className="settlement-note">
-                        <LoaderCircle className="spin" size={13} /> Sending MON reward
-                      </p>
-                    ) : null}
-                    {status.chainError ? (
-                      <p className="settlement-error">Reward transfer is temporarily unavailable.</p>
-                    ) : null}
-                    <p className="disclosure">{response.offer.disclosure}</p>
-                  </article>
-                ) : (
-                  <button className="restore-ad" onClick={() => setDismissed(false)} type="button">
-                    Show dismissed sponsored result
-                  </button>
-                )}
+                          <X size={16} />
+                        </button>
+                      </div>
+                      <div className="ad-card-body">
+                        <div className="advertiser-mark">{response.offer.advertiser.slice(0, 1)}</div>
+                        <div>
+                          <p className="advertiser-name">{response.offer.advertiser}</p>
+                          <h3>{response.offer.title}</h3>
+                          <p>{response.offer.description}</p>
+                        </div>
+                      </div>
+                      <div className="ad-meta">
+                        <span>{response.offer.domain}</span>
+                        <span>{response.offer.reason}</span>
+                      </div>
+                      <div className="ad-action-row">
+                        <div>
+                          <span>User click reward</span>
+                          <strong>+{response.offer.rewardMon} MON</strong>
+                        </div>
+                        {status.state === "paid" ? (
+                          <span className="payout-confirmation">
+                            <Check size={15} /> +{status.paidMon} MON sent
+                          </span>
+                        ) : status.state === "recorded" || status.state === "proposed" ? (
+                          <span className="payout-confirmation">
+                            <LoaderCircle className="spin" size={15} /> Sending reward
+                          </span>
+                        ) : (
+                          <a
+                            href={response.offer.clickUrl}
+                            onClick={() =>
+                              setStatus({
+                                clickId: response.offer?.clickId ?? "",
+                                state: "recorded",
+                                paidMon: "0",
+                                mode: "monad-testnet"
+                              })
+                            }
+                            rel="noreferrer"
+                            target="_blank"
+                          >
+                            Visit sponsor <ExternalLink size={15} />
+                          </a>
+                        )}
+                      </div>
+                      {status.state === "recorded" || status.state === "proposed" ? (
+                        <p className="settlement-note">
+                          <LoaderCircle className="spin" size={13} /> Sending MON reward
+                        </p>
+                      ) : null}
+                      {status.chainError ? (
+                        <p className="settlement-error">Reward transfer is temporarily unavailable.</p>
+                      ) : null}
+                      <p className="disclosure">{response.offer.disclosure}</p>
+                    </article>
+                  )
+                ) : null}
               </>
             ) : null}
           </div>
