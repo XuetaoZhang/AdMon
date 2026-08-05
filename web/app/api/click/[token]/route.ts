@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { submitSettlement } from "@/lib/chain-relayer";
 import {
   getClickStatus,
@@ -38,23 +38,24 @@ export async function GET(
     );
   }
 
-  try {
-    const settlement = await submitSettlement({
-      campaignId: payload.campaignId,
-      clickId: payload.clickId as `0x${string}`,
-      userAddress: payload.user as `0x${string}`,
-      publisherAddress: payload.publisher as `0x${string}`,
-      expiresAt: payload.expiresAt
-    });
-    markSettlementSubmitted(payload.clickId, settlement.transactionHash);
-    incrementCampaignClicks(payload.campaignId);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Monad settlement unavailable.";
-    markSettlementError(payload.clickId, message);
-    if (process.env.ADMON_CHAIN_SETTLEMENT_REQUIRED === "true") {
-      return new NextResponse(message, { status: 503 });
+  // Return the advertiser page immediately. Next keeps this callback alive
+  // after the redirect while the relayer submits the Monad transaction.
+  after(async () => {
+    try {
+      const settlement = await submitSettlement({
+        campaignId: payload.campaignId,
+        clickId: payload.clickId as `0x${string}`,
+        userAddress: payload.user as `0x${string}`,
+        publisherAddress: payload.publisher as `0x${string}`,
+        expiresAt: payload.expiresAt
+      });
+      markSettlementSubmitted(payload.clickId, settlement.transactionHash);
+      incrementCampaignClicks(payload.campaignId);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Monad settlement unavailable.";
+      markSettlementError(payload.clickId, message);
     }
-  }
+  });
 
   return NextResponse.redirect(
     payload.destinationUrl ||

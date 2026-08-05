@@ -35,6 +35,8 @@ export function AdMonConsole() {
   const [prompt, setPrompt] = useState(promptOptions[0]);
   const [wallet, setWallet] = useState(defaultWallet);
   const [response, setResponse] = useState<AgentResponse | null>(null);
+  const [history, setHistory] = useState<AgentResponse[]>([]);
+  const [pendingPrompt, setPendingPrompt] = useState("");
   const [status, setStatus] = useState<ClickStatus>(initialStatus);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -69,6 +71,9 @@ export function AdMonConsole() {
     setError("");
     setDismissed(false);
     setStatus(initialStatus);
+    if (response) setHistory((current) => [...current, response]);
+    setResponse(null);
+    setPendingPrompt(nextPrompt);
     try {
       const result = await fetch("/api/agent", {
         method: "POST",
@@ -78,6 +83,7 @@ export function AdMonConsole() {
       const body = await result.json();
       if (!result.ok) throw new Error(body.error || "Agent request failed.");
       setResponse(body);
+      setPendingPrompt("");
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Request failed.");
     } finally {
@@ -94,6 +100,8 @@ export function AdMonConsole() {
       });
     }
     setResponse(null);
+    setHistory([]);
+    setPendingPrompt("");
     setStatus(initialStatus);
     setDismissed(false);
     setError("");
@@ -145,7 +153,32 @@ export function AdMonConsole() {
           </div>
 
           <div className="conversation" aria-live="polite">
-            {!response && !loading ? (
+            {history.map((turn, index) => (
+              <div className="history-turn" key={`${turn.prompt}-${index}`}>
+                <div className="user-message">{turn.prompt}</div>
+                <article className="agent-answer history-answer">
+                  <div className="answer-label">
+                    <ShieldCheck size={16} /> Neutral agent response
+                    <span className={turn.agent.mode === "deepseek" ? "agent-runtime live" : "agent-runtime"}>
+                      {turn.agent.mode === "deepseek" ? turn.agent.model : "Local fallback"}
+                    </span>
+                  </div>
+                  <h2>{turn.answer.heading}</h2>
+                  <p>{turn.answer.summary}</p>
+                  {turn.offer ? (
+                    <div className="history-sponsor">
+                      <span><Sparkles size={13} /> Sponsored</span>
+                      <strong>{turn.offer.title}</strong>
+                      <small>{turn.offer.advertiser} · +{turn.offer.rewardMon} MON on click</small>
+                    </div>
+                  ) : null}
+                </article>
+              </div>
+            ))}
+
+            {pendingPrompt ? <div className="user-message pending-message">{pendingPrompt}</div> : null}
+
+            {!response && !loading && !pendingPrompt && history.length === 0 ? (
               <div className="empty-state">
                 <TerminalSquare size={26} />
                 <h2>Inspect an onchain action</h2>

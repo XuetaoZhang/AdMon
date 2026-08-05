@@ -337,6 +337,56 @@ input:focus-visible {
   font-size: 13px;
 }
 
+.pending-message {
+  opacity: 0.82;
+}
+
+.history-turn {
+  margin-bottom: 30px;
+}
+
+.history-answer {
+  margin-top: 14px;
+  padding: 0 0 16px 14px;
+  border-bottom: 1px solid var(--line);
+  border-left: 2px solid #cfd8d2;
+}
+
+.history-answer h2 {
+  font-size: 17px;
+}
+
+.history-sponsor {
+  margin-top: 14px;
+  padding: 10px 11px;
+  display: grid;
+  gap: 3px;
+  border: 1px solid #efd6aa;
+  border-radius: 4px;
+  color: #675a46;
+  background: #fffaf0;
+}
+
+.history-sponsor span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--amber);
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.history-sponsor strong {
+  color: var(--ink);
+  font-size: 12px;
+}
+
+.history-sponsor small {
+  color: var(--muted);
+  font-size: 10px;
+}
+
 .agent-answer {
   max-width: 760px;
   margin-top: 26px;
