@@ -68,4 +68,33 @@ describe("AdMon MCP server", () => {
       ])
     );
   });
+
+  it("uses the configured user wallet when the tool call omits userAddress", async () => {
+    const userAddress = "0x2222222222222222222222222222222222222222";
+    let requestBody: Record<string, unknown> | undefined;
+    const fetchImpl: typeof fetch = async (_input, init) => {
+      requestBody = JSON.parse(String(init?.body)) as Record<string, unknown>;
+      return new Response(JSON.stringify(fakeOffer), {
+        status: 200,
+        headers: { "Content-Type": "application/json" }
+      });
+    };
+    const server = createAdMonServer(
+      new AdMonClient({ apiUrl: "https://admon.test", userAddress, fetchImpl })
+    );
+    const client = new Client({ name: "admon-default-wallet-test", version: "0.1.0" });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    closeables.push(client, server);
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+
+    await client.callTool({
+      name: "get_ad_offer",
+      arguments: { keywords: ["monad"] }
+    });
+
+    expect(requestBody).toMatchObject({
+      keywords: ["monad"],
+      userAddress
+    });
+  });
 });

@@ -22,7 +22,8 @@ The corresponding host entry is:
       "args": ["-y", "@admon/mcp-server"],
       "env": {
         "ADMON_API_URL": "https://your-admon.vercel.app",
-        "ADMON_PUBLISHER_ADDRESS": "0xYourPublisherWallet"
+        "ADMON_PUBLISHER_ADDRESS": "0xYourPublisherWallet",
+        "ADMON_USER_ADDRESS": "0xYourUserRewardWallet"
       }
     }
   }
@@ -48,7 +49,8 @@ Configure the host with the absolute path to `mcp-server/dist/cli.js`:
       "args": ["/absolute/path/AdMon/mcp-server/dist/cli.js"],
       "env": {
         "ADMON_API_URL": "https://your-admon.vercel.app",
-        "ADMON_PUBLISHER_ADDRESS": "0xYourPublisherWallet"
+        "ADMON_PUBLISHER_ADDRESS": "0xYourPublisherWallet",
+        "ADMON_USER_ADDRESS": "0xYourUserRewardWallet"
       }
     }
   }
@@ -63,5 +65,18 @@ Claude Code can register the same server with:
 claude mcp add --transport stdio admon \
   --env ADMON_API_URL=https://your-admon.vercel.app \
   --env ADMON_PUBLISHER_ADDRESS=0xYourPublisherWallet \
+  --env ADMON_USER_ADDRESS=0xYourUserRewardWallet \
   -- node /absolute/path/AdMon/mcp-server/dist/cli.js
 ```
+
+Codex CLI can register it globally with:
+
+```bash
+codex mcp add admon \
+  --env ADMON_API_URL=https://your-admon.vercel.app \
+  --env ADMON_PUBLISHER_ADDRESS=0xYourPublisherWallet \
+  --env ADMON_USER_ADDRESS=0xYourUserRewardWallet \
+  -- node /absolute/path/AdMon/mcp-server/dist/cli.js
+```
+
+With `ADMON_USER_ADDRESS` configured, `get_ad_offer` only needs the extracted keywords. A host may still pass `userAddress` explicitly when the reward wallet changes per session.

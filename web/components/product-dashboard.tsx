@@ -128,7 +128,8 @@ export function ProductDashboard() {
               env: {
                 ADMON_API_URL:
                   typeof window === "undefined" ? "https://your-admon.app" : window.location.origin,
-                ADMON_PUBLISHER_ADDRESS: publisher.wallet
+                ADMON_PUBLISHER_ADDRESS: publisher.wallet,
+                ADMON_USER_ADDRESS: userWallet
               }
             }
           }
@@ -136,7 +137,7 @@ export function ProductDashboard() {
         null,
         2
       ),
-    [publisher.wallet]
+    [publisher.wallet, userWallet]
   );
 
   function openEditor(mode: CampaignEditorMode, campaign?: ProductCampaign) {

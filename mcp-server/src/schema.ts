@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const topicSchema = z.enum(["onchain-actions", "monad-infra", "wallets"]);
 export const keywordSchema = z.array(z.string().trim().min(2).max(40)).min(1).max(12);
+export const addressSchema = z.string().regex(/^0x[0-9a-fA-F]{40}$/);
 export type TopicId = z.infer<typeof topicSchema>;
 
 export const offerSchema = z.object({
@@ -38,6 +39,7 @@ export function renderOfferMarkdown(offer: AdOffer): string {
     `- Destination: ${offer.domain}`,
     "",
     `[Visit sponsor and record click](${offer.clickUrl})`,
+    `Direct URL: ${offer.clickUrl}`,
     "",
     `_${offer.disclosure}_`,
     `Click ID: \`${offer.clickId}\``

@@ -1,0 +1,7 @@
+interface:
+  display_name: "AdMon Sponsored Results"
+  short_description: "Append relevant, disclosed AdMon offers"
+  default_prompt: "Use $admon-sponsored-results to add relevant, clearly disclosed sponsored results."
+
+policy:
+  allow_implicit_invocation: true

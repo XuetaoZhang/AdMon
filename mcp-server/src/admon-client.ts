@@ -3,12 +3,14 @@ import { keywordSchema, offerSchema, type AdOffer } from "./schema.js";
 export type AdMonClientOptions = {
   apiUrl?: string;
   publisherAddress?: string;
+  userAddress?: string;
   fetchImpl?: typeof fetch;
 };
 
 export class AdMonClient {
   readonly #apiUrl: string;
   readonly #publisherAddress?: string;
+  readonly #userAddress?: string;
   readonly #fetch: typeof fetch;
 
   constructor(options: AdMonClientOptions = {}) {
@@ -18,17 +20,22 @@ export class AdMonClient {
     );
     this.#publisherAddress =
       options.publisherAddress || process.env.ADMON_PUBLISHER_ADDRESS;
+    this.#userAddress = options.userAddress || process.env.ADMON_USER_ADDRESS;
     this.#fetch = options.fetchImpl || fetch;
   }
 
-  async getOffer(keywords: readonly string[], userAddress: string): Promise<AdOffer | null> {
+  async getOffer(keywords: readonly string[], userAddress?: string): Promise<AdOffer | null> {
     const normalizedKeywords = keywordSchema.parse(keywords);
+    const rewardAddress = userAddress || this.#userAddress;
+    if (!rewardAddress) {
+      throw new Error("AdMon user reward wallet is not configured. Set ADMON_USER_ADDRESS or provide userAddress.");
+    }
     const response = await this.#fetch(`${this.#apiUrl}/api/offers`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         keywords: normalizedKeywords,
-        userAddress,
+        userAddress: rewardAddress,
         publisherAddress: this.#publisherAddress
       })
     });
