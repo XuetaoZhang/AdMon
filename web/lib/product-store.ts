@@ -236,20 +236,17 @@ async function getDatabase() {
   await ensurePostgresSchema();
   if (!databaseSeedPromise) {
     databaseSeedPromise = (async () => {
-      const campaignCount = await database.query<{ count: string }>(
-        "SELECT COUNT(*)::text AS count FROM admon_campaigns"
-      );
-      if (campaignCount.rows[0]?.count !== "0") return;
-
       const localStore = readLocalStore();
-      await database.query("BEGIN");
+      const client = await database.connect();
       try {
+        await client.query("BEGIN");
         for (const campaign of localStore.campaigns) {
-          await database.query(
+          await client.query(
             `INSERT INTO admon_campaigns (
               id, campaign_id, advertiser, title, description, keywords, topic_id,
               destination_url, domain, click_reward_mon, budget_mon, status, clicks, updated_at
-            ) VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8, $9, $10, $11, $12, $13, $14)`,
+            ) VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8, $9, $10, $11, $12, $13, $14)
+            ON CONFLICT (id) DO NOTHING`,
             [
               campaign.id,
               campaign.campaignId,
@@ -268,16 +265,18 @@ async function getDatabase() {
             ]
           );
         }
-        await database.query(
+        await client.query(
           `INSERT INTO admon_publisher (id, name, wallet)
            VALUES (TRUE, $1, $2)
            ON CONFLICT (id) DO NOTHING`,
           [localStore.publisher.name, localStore.publisher.wallet]
         );
-        await database.query("COMMIT");
+        await client.query("COMMIT");
       } catch (error) {
-        await database.query("ROLLBACK");
+        await client.query("ROLLBACK");
         throw error;
+      } finally {
+        client.release();
       }
     })();
   }
