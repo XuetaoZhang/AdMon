@@ -11,11 +11,11 @@ services:
           property: connectionString
       - key: DATABASE_SSL
         value: "true"
-      - key: BASE_URL
+      - key: DEEPSEEK_BASE_URL
         sync: false
-      - key: AUTH_TOKEN
+      - key: DEEPSEEK_API_KEY
         sync: false
-      - key: MODEL
+      - key: DEEPSEEK_MODEL
         sync: false
       - key: ADMON_CONTRACT_ADDRESS
         sync: false

@@ -8,7 +8,12 @@ const publisherSchema = z.object({
 });
 
 export async function GET() {
-  return NextResponse.json({ publisher: await getPublisherProfile() });
+  try {
+    return NextResponse.json({ publisher: await getPublisherProfile() });
+  } catch (error) {
+    console.error("Unable to load AdMon publisher profile.", error);
+    return NextResponse.json({ error: "Publisher service is unavailable." }, { status: 503 });
+  }
 }
 
 export async function PUT(request: Request) {
@@ -16,10 +21,15 @@ export async function PUT(request: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Publisher profile is invalid." }, { status: 400 });
   }
-  return NextResponse.json({
-    publisher: await savePublisherProfile({
-      ...parsed.data,
-      wallet: parsed.data.wallet as `0x${string}`
-    })
-  });
+  try {
+    return NextResponse.json({
+      publisher: await savePublisherProfile({
+        ...parsed.data,
+        wallet: parsed.data.wallet as `0x${string}`
+      })
+    });
+  } catch (error) {
+    console.error("Unable to save AdMon publisher profile.", error);
+    return NextResponse.json({ error: "Publisher service is unavailable." }, { status: 503 });
+  }
 }

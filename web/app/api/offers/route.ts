@@ -18,15 +18,20 @@ export async function POST(request: Request) {
     );
   }
 
-  const campaign = await findCampaignForKeywords(parsed.data.keywords);
-  if (!campaign) return new NextResponse(null, { status: 204 });
+  try {
+    const campaign = await findCampaignForKeywords(parsed.data.keywords);
+    if (!campaign) return new NextResponse(null, { status: 204 });
 
-  return NextResponse.json(
-    await createOffer(
-      campaign,
-      parsed.data.userAddress,
-      new URL(request.url).origin,
-      parsed.data.publisherAddress
-    )
-  );
+    return NextResponse.json(
+      await createOffer(
+        campaign,
+        parsed.data.userAddress,
+        new URL(request.url).origin,
+        parsed.data.publisherAddress
+      )
+    );
+  } catch (error) {
+    console.error("AdMon offer service is unavailable.", error);
+    return NextResponse.json({ error: "Offer service is unavailable." }, { status: 503 });
+  }
 }

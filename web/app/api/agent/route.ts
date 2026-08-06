@@ -49,10 +49,17 @@ export async function POST(request: Request) {
   const origin = new URL(request.url).origin;
   // Campaign keywords are matched inside the publisher host. The MCP tool
   // receives only the selected creative ID, never the user prompt.
-  const matchedCampaign = await findCampaignForPrompt(parsed.data.prompt);
-  const offer = matchedCampaign
-    ? await getOfferThroughMcp(matchedCampaign.id, parsed.data.userAddress, origin)
-    : null;
+  let offer = null;
+  try {
+    const matchedCampaign = await findCampaignForPrompt(parsed.data.prompt);
+    offer = matchedCampaign
+      ? await getOfferThroughMcp(matchedCampaign.id, parsed.data.userAddress, origin)
+      : null;
+  } catch (error) {
+    // The neutral agent response remains useful during a temporary campaign
+    // storage outage. Never turn an unavailable sponsored result into a 500.
+    console.error("AdMon campaign lookup unavailable.", error);
+  }
   return NextResponse.json({
     prompt: parsed.data.prompt,
     topicId,

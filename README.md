@@ -39,9 +39,9 @@ For a shared deployment with persistent campaign, publisher, and click state, se
 The reference agent calls DeepSeek from the server. Configure the provider in `web/.env.local` so the API key never reaches the browser:
 
 ```bash
-BASE_URL=https://api.deepseek.com
-AUTH_TOKEN=your-deepseek-api-key
-MODEL=your-deepseek-model
+DEEPSEEK_BASE_URL=https://api.deepseek.com
+DEEPSEEK_API_KEY=your-deepseek-api-key
+DEEPSEEK_MODEL=your-deepseek-model
 ```
 
 If the provider is temporarily unavailable, the host falls back to a deterministic local safety preview while keeping the MCP offer and settlement path available.

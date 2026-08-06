@@ -71,11 +71,28 @@ export function ProductDashboard() {
 
   useEffect(() => {
     void Promise.all([
-      fetch("/api/admin/campaigns", { cache: "no-store" }).then((response) => response.json()),
-      fetch("/api/admin/publisher", { cache: "no-store" }).then((response) => response.json())
-    ]).then(([campaignBody, publisherBody]) => {
+      fetch("/api/admin/campaigns", { cache: "no-store" }),
+      fetch("/api/admin/publisher", { cache: "no-store" })
+    ]).then(async ([campaignResponse, publisherResponse]) => {
+      const readBody = async (response: Response) => {
+        const body = await response.text();
+        try {
+          return body ? JSON.parse(body) as { campaigns?: ProductCampaign[]; publisher?: PublisherProfile; error?: string } : {};
+        } catch {
+          return {};
+        }
+      };
+      const [campaignBody, publisherBody] = await Promise.all([
+        readBody(campaignResponse),
+        readBody(publisherResponse)
+      ]);
+      if (!campaignResponse.ok || !publisherResponse.ok) {
+        throw new Error(campaignBody.error || publisherBody.error || "Manage data is unavailable.");
+      }
       setCampaigns(campaignBody.campaigns || []);
       if (publisherBody.publisher) setPublisher(publisherBody.publisher);
+    }).catch((loadError) => {
+      setError(loadError instanceof Error ? loadError.message : "Manage data is unavailable.");
     });
     setUserWallet(
       window.localStorage.getItem("admon-user-wallet") ||

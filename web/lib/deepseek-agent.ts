@@ -98,9 +98,9 @@ Rules:
 - Return valid JSON without Markdown fences.`;
 
 function getConfig() {
-  const apiKey = process.env.AUTH_TOKEN || process.env.DEEPSEEK_API_KEY || "";
-  const baseUrl = (process.env.BASE_URL || process.env.DEEPSEEK_BASE_URL || "https://api.deepseek.com").replace(/\/+$/, "");
-  const model = process.env.MODEL || process.env.DEEPSEEK_MODEL || "deepseek-chat";
+  const apiKey = process.env.DEEPSEEK_API_KEY || process.env.AUTH_TOKEN || "";
+  const baseUrl = (process.env.DEEPSEEK_BASE_URL || process.env.BASE_URL || "https://api.deepseek.com").replace(/\/+$/, "");
+  const model = process.env.DEEPSEEK_MODEL || process.env.MODEL || "deepseek-chat";
   return { apiKey, baseUrl, model };
 }
 

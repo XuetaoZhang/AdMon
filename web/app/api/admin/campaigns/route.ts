@@ -20,7 +20,12 @@ const campaignSchema = z.object({
 });
 
 export async function GET() {
-  return NextResponse.json({ campaigns: await listCampaigns() });
+  try {
+    return NextResponse.json({ campaigns: await listCampaigns() });
+  } catch (error) {
+    console.error("Unable to load AdMon campaigns.", error);
+    return NextResponse.json({ error: "Campaign service is unavailable." }, { status: 503 });
+  }
 }
 
 export async function PUT(request: Request) {
@@ -28,5 +33,10 @@ export async function PUT(request: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Campaign details are invalid." }, { status: 400 });
   }
-  return NextResponse.json({ campaign: await saveCampaign({ ...parsed.data, keywords: normalizeKeywords(parsed.data.keywords) }) });
+  try {
+    return NextResponse.json({ campaign: await saveCampaign({ ...parsed.data, keywords: normalizeKeywords(parsed.data.keywords) }) });
+  } catch (error) {
+    console.error("Unable to save AdMon campaign.", error);
+    return NextResponse.json({ error: "Campaign service is unavailable." }, { status: 503 });
+  }
 }

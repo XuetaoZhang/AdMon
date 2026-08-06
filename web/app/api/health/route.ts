@@ -5,6 +5,13 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   const database = getPostgresPool();
+  if (!database && process.env.VERCEL) {
+    return NextResponse.json(
+      { status: "degraded", storage: "local", error: "DATABASE_URL is not configured." },
+      { status: 503 }
+    );
+  }
+
   if (database) {
     try {
       await ensurePostgresSchema();

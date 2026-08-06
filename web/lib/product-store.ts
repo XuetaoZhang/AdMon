@@ -108,6 +108,10 @@ const storePath = path.join(process.cwd(), ".admon-store.json");
 const isTestEnvironment = process.env.NODE_ENV === "test" || process.env.VITEST === "true";
 let databaseSeedPromise: Promise<void> | null = null;
 
+const globalForProductStore = globalThis as typeof globalThis & {
+  admonLocalStore?: ProductStore;
+};
+
 function createSeedStore(): ProductStore {
   return {
     version: 4,
@@ -152,9 +156,10 @@ function readLocalStore(): ProductStore {
     }
   }
 
-  const seeded = createSeedStore();
+  const seeded = globalForProductStore.admonLocalStore ?? createSeedStore();
+  globalForProductStore.admonLocalStore = cloneStore(seeded);
   writeLocalStore(seeded);
-  return seeded;
+  return cloneStore(seeded);
 }
 
 function writeLocalStore(nextStore: ProductStore): void {
@@ -165,9 +170,17 @@ function writeLocalStore(nextStore: ProductStore): void {
 
   // Rename keeps readers in sibling Next.js route runtimes from observing a
   // partially written campaign update.
-  const temporaryPath = `${storePath}.tmp`;
-  writeFileSync(temporaryPath, `${JSON.stringify(nextStore, null, 2)}\n`, "utf8");
-  renameSync(temporaryPath, storePath);
+  try {
+    const temporaryPath = `${storePath}.tmp`;
+    writeFileSync(temporaryPath, `${JSON.stringify(nextStore, null, 2)}\n`, "utf8");
+    renameSync(temporaryPath, storePath);
+  } catch (error) {
+    const code = error instanceof Error && "code" in error ? error.code : undefined;
+    if (code !== "EROFS" && code !== "EACCES" && code !== "EPERM") throw error;
+    // Serverless filesystems are read-only. Keep the development fallback
+    // available for that runtime while shared deployments use PostgreSQL.
+    globalForProductStore.admonLocalStore = cloneStore(nextStore);
+  }
 }
 
 function normalizeKeyword(value: string): string {

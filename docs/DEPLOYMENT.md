@@ -9,9 +9,9 @@ Supabase can be used without running a separate migration: paste [supabase/schem
 ```text
 DATABASE_URL=postgresql://...
 DATABASE_SSL=true
-BASE_URL=https://your-public-domain.example
-AUTH_TOKEN=...
-MODEL=deepseek-v4-flash
+DEEPSEEK_BASE_URL=https://api.deepseek.com
+DEEPSEEK_API_KEY=...
+DEEPSEEK_MODEL=deepseek-v4-flash
 ADMON_CONTRACT_ADDRESS=0x2501155A34E0af59a21751045abB6A9056b7e1Ab
 # Use the encrypted keystore JSON pair, a mounted keystore file pair, or the relayer private key.
 ADMON_RELAYER_KEYSTORE_JSON={...encrypted keystore JSON...}
@@ -41,11 +41,20 @@ The two public test wallets in the local `.env` are not the current relayer.
 If the dedicated key is unavailable, the Safe owner must call `setRelayer` for
 a new dedicated wallet before deploying the backend.
 
-`DATABASE_URL` stores campaigns, publisher profiles, and click settlement state. The MCP configuration shown in Manage must use the public application URL as `ADMON_API_URL`; it must not use the MCP host's own `localhost`.
+`DATABASE_URL` stores campaigns, publisher profiles, and click settlement state. AdMon derives its public origin from each incoming request, so it has no public-site URL environment variable. The MCP configuration shown in Manage must use the public application URL as `ADMON_API_URL`; it must not use the MCP host's own `localhost`.
 
 ## Vercel and Supabase
 
-For Vercel, keep the repository root as the project root so workspace dependencies resolve. Use `npm ci` for installation and `npm run build:web` for the build command. This builds the contract artifact, Moss dependencies, and then the Next.js application in the required order. Do not set a start command; Vercel runs the Next.js routes as serverless functions. For a self-hosted Node process, use `npm run start --workspace @admon/web -- -p 3000` instead.
+For Vercel, configure the project's **Root Directory** as `web` so Vercel finds the resulting `web/.next` directory. The repository is an npm workspace, so build dependencies must still be installed and compiled from its parent directory:
+
+```text
+Install Command: cd .. && npm ci
+Build Command: cd .. && npm run build:web
+Output Directory: unset
+Start Command: unset
+```
+
+This builds the contract artifact, Moss dependencies, and then the Next.js application in the required order. Do not set a start command; Vercel runs the Next.js routes as serverless functions. For a self-hosted Node process, use `npm run start --workspace @admon/web -- -p 3000` instead.
 
 Use the Supabase PostgreSQL connection string as `DATABASE_URL` and set `DATABASE_SSL=true`. The SQL in `supabase/schema.sql` is optional because the application creates the same schema on first request.
 
