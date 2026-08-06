@@ -1534,6 +1534,7 @@ input:focus-visible {
 .campaign-row { min-height: 76px; border-top: 1px solid var(--line); font-size: 11px; }
 .campaign-row:last-child { border-bottom: 1px solid var(--line); }
 .campaign-row > code { color: var(--muted); font-size: 9px; }
+.campaign-loading { min-height: 76px; display: flex; align-items: center; gap: 8px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); color: var(--muted); font-size: 11px; }
 
 .campaign-identity { min-width: 0; display: grid; grid-template-columns: 34px minmax(0, 1fr); align-items: center; gap: 11px; }
 .campaign-identity > span { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 4px; color: var(--amber); background: var(--amber-soft); font-family: var(--font-display); font-size: 16px; }

@@ -64,6 +64,7 @@ export function ProductDashboard() {
   const [userWallet, setUserWallet] = useState("");
   const [editorMode, setEditorMode] = useState<CampaignEditorMode | null>(null);
   const [draft, setDraft] = useState<ProductCampaign>(emptyCampaign);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
@@ -93,6 +94,8 @@ export function ProductDashboard() {
       if (publisherBody.publisher) setPublisher(publisherBody.publisher);
     }).catch((loadError) => {
       setError(loadError instanceof Error ? loadError.message : "Manage data is unavailable.");
+    }).finally(() => {
+      setLoading(false);
     });
     setUserWallet(
       window.localStorage.getItem("admon-user-wallet") ||
@@ -302,23 +305,27 @@ export function ProductDashboard() {
       {tab === "advertiser" ? (
         <>
           <section className="metric-strip" aria-label="Campaign summary">
-            <div><Activity size={18} /><span>Active creatives</span><strong>{summary.active}</strong></div>
-            <div><Users size={18} /><span>Verified clicks</span><strong>{summary.clicks}</strong></div>
-            <div><BadgeDollarSign size={18} /><span>Funded campaign budget</span><strong>{summary.budget.toFixed(2)} MON</strong></div>
+            <div><Activity size={18} /><span>Active creatives</span><strong>{loading ? "-" : summary.active}</strong></div>
+            <div><Users size={18} /><span>Verified clicks</span><strong>{loading ? "-" : summary.clicks}</strong></div>
+            <div><BadgeDollarSign size={18} /><span>Funded campaign budget</span><strong>{loading ? "-" : `${summary.budget.toFixed(2)} MON`}</strong></div>
           </section>
 
           <section className="campaign-section">
             <div className="section-heading-row">
-              <div><h2>Campaigns</h2><span>{campaigns.length} creatives</span></div>
+              <div><h2>Campaigns</h2><span>{loading ? "Loading campaigns..." : `${campaigns.length} creatives`}</span></div>
               <button className="primary-action compact" onClick={() => openEditor("fund")} type="button">
                 <Plus size={15} /> New campaign
               </button>
             </div>
-            <div className="campaign-table" role="table">
+            <div className="campaign-table" aria-busy={loading} role="table">
               <div className="campaign-table-head" role="row">
                 <span>Creative</span><span>Keywords</span><span>Reward</span><span>Clicks</span><span>Status</span><span />
               </div>
-              {campaigns.map((campaign) => (
+              {loading ? (
+                <div className="campaign-loading" role="status">
+                  <LoaderCircle className="spin" size={16} /> Loading campaign data...
+                </div>
+              ) : campaigns.map((campaign) => (
                 <div className="campaign-row" role="row" key={campaign.id}>
                   <div className="campaign-identity">
                     <span>{campaign.advertiser.slice(0, 1)}</span>
