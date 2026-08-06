@@ -4,8 +4,8 @@
       "command": "node",
       "args": ["mcp-server/dist/cli.js"],
       "env": {
-        "ADMON_API_URL": "http://127.0.0.1:3000",
-        "ADMON_PUBLISHER_ADDRESS": "0x719d34102D3c79C588f6C4BA3147cF10d00E4371"
+        "ADMON_API_URL": "https://ad-mon-web.vercel.app",
+        "ADMON_PUBLISHER_ADDRESS": "0x33CF57293465C71430aa74a6CB3CbbA384FA4d3D"
       }
     }
   }
