@@ -36,10 +36,18 @@ async function getSigner(): Promise<Wallet | HDNodeWallet> {
       const privateKey = process.env.ADMON_RELAYER_PRIVATE_KEY;
       if (privateKey) return new Wallet(privateKey, provider);
 
+      const keystoreJson = process.env.ADMON_RELAYER_KEYSTORE_JSON;
+      if (keystoreJson) {
+        return (await Wallet.fromEncryptedJson(
+          keystoreJson,
+          process.env.ADMON_RELAYER_KEYSTORE_PASSWORD || ""
+        )).connect(provider);
+      }
+
       const keystorePath = process.env.ADMON_RELAYER_KEYSTORE_PATH;
       if (!keystorePath) {
         throw new Error(
-          "AdMon relayer is not configured. Set ADMON_RELAYER_KEYSTORE_PATH or ADMON_RELAYER_PRIVATE_KEY."
+          "AdMon relayer is not configured. Set ADMON_RELAYER_KEYSTORE_JSON, ADMON_RELAYER_KEYSTORE_PATH, or ADMON_RELAYER_PRIVATE_KEY."
         );
       }
 

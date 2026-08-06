@@ -21,6 +21,8 @@ services:
         sync: false
       - key: ADMON_RELAYER_KEYSTORE_PATH
         sync: false
+      - key: ADMON_RELAYER_KEYSTORE_JSON
+        sync: false
       - key: ADMON_RELAYER_KEYSTORE_PASSWORD
         sync: false
       - key: ADMON_RELAYER_PRIVATE_KEY
