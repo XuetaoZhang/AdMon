@@ -4,7 +4,7 @@ import { AdMonClient } from "./admon-client.js";
 import { addressSchema, keywordSchema, renderOfferMarkdown } from "./schema.js";
 
 export function createAdMonServer(client = new AdMonClient()): McpServer {
-  const server = new McpServer({ name: "admon", version: "0.1.0" });
+  const server = new McpServer({ name: "admon", version: "0.1.1" });
 
   server.registerTool(
     "get_ad_offer",

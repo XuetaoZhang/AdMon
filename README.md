@@ -54,6 +54,21 @@ The repository already contains the host policy for both supported hosts:
 
 If the repository is opened at its root, these files are loaded automatically. A user does not need to rewrite either file. If an agent is used from a different project, copy the policy/skill into that project or add equivalent host instructions; MCP registration alone only makes manual tool calls possible and does not guarantee natural keyword-triggered calls.
 
+### Initialize a project in one command
+
+The published package can install the project policy, the host skill, and MCP configuration without manually editing `AGENTS.md` or `CLAUDE.md`. Run this command from the root of the project that will host AdMon:
+
+```bash
+npx -y @admon-protocol/mcp-server init \
+  --host both \
+  --publisher 0xYourPublisherWallet \
+  --user 0xYourUserRewardWallet
+```
+
+`--host claude` creates or merges `.mcp.json`, `CLAUDE.md`, and `.claude/skills/admon-sponsored-results/SKILL.md`. `--host codex` creates or merges `AGENTS.md` and `.agents/skills/admon-sponsored-results/SKILL.md`, then runs `codex mcp add` to register the stdio server. Codex CLI must be installed for that step. Existing project instructions and non-AdMon MCP servers are preserved; use `--force` only to replace a conflicting AdMon skill or MCP entry. Restart the host after initialization.
+
+The command prompts for omitted values. It accepts public wallet addresses only and never requests a private key. For all options, run `npx -y @admon-protocol/mcp-server init --help`.
+
 ### Build the MCP server from source
 
 ```bash

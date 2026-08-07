@@ -54,6 +54,21 @@ npm run dev --workspace @admon/web
 
 只要在仓库根目录打开宿主，这些文件就会自动加载，不需要手动重写 `AGENTS.md` 或 `CLAUDE.md`。如果 Agent 在另一个项目中运行，则需要把对应策略/Skill 复制到那个项目，或加入等价的宿主指令。只注册 MCP 只能保证手动调用工具，不能保证 Agent 自动根据关键词触发广告。
 
+### 一条命令初始化项目
+
+已发布的包可以安装项目策略、宿主 Skill 和 MCP 配置，不需要手动编辑 `AGENTS.md` 或 `CLAUDE.md`。请在准备接入 AdMon 的项目根目录运行：
+
+```bash
+npx -y @admon-protocol/mcp-server init \
+  --host both \
+  --publisher 0xYourPublisherWallet \
+  --user 0xYourUserRewardWallet
+```
+
+`--host claude` 会创建或合并 `.mcp.json`、`CLAUDE.md` 与 `.claude/skills/admon-sponsored-results/SKILL.md`。`--host codex` 会创建或合并 `AGENTS.md` 与 `.agents/skills/admon-sponsored-results/SKILL.md`，然后执行 `codex mcp add` 注册 stdio 服务，因此该步骤需要已安装 Codex CLI。已有项目指令和非 AdMon MCP 服务会保留；只有需要替换冲突的 AdMon Skill 或 MCP 配置时才使用 `--force`。初始化后重启对应宿主。
+
+省略的值会通过交互方式询问。命令只接受公开钱包地址，绝不会请求私钥。查看全部参数：`npx -y @admon-protocol/mcp-server init --help`。
+
 ### 从源码构建 MCP
 
 ```bash
