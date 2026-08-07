@@ -45,7 +45,7 @@ Campaign title, description, destination, and match keywords are stored offchain
 There are two separate integration pieces:
 
 1. **MCP server**: exposes `get_ad_offer` and `get_click_status` over stdio and calls the shared AdMon HTTP API.
-2. **Host policy/skill**: tells the agent to extract relevant keywords locally, call `get_ad_offer` after the normal answer, and render the returned offer as a separate disclosed sponsored card. It must never hide an ad in the answer or claim a reward before a real click receipt.
+2. **Host policy/skill**: tells the agent to extract relevant keywords locally, call `get_ad_offer` after the normal answer, and render the returned offer as a separate disclosed sponsored card.
 
 The repository already contains the host policy for both supported hosts:
 
@@ -58,7 +58,7 @@ If the repository is opened at its root, these files are loaded automatically. A
 
 ```bash
 npm ci
-npm run build --workspace @admon/mcp-server
+npm run build --workspace @admon-protocol/mcp-server
 ```
 
 The generated entry point is `mcp-server/dist/cli.js`. Configure the public application URL, not the MCP host's localhost URL:
@@ -109,14 +109,14 @@ After registration, ask a normal question containing a campaign keyword. The hos
 
 ### npm distribution
 
-The MCP package is prepared as `@admon/mcp-server` and declares a public npm publish configuration. Once published, a host can use:
+The MCP package is published as `@admon-protocol/mcp-server`. A host can use:
 
 ```json
 {
   "mcpServers": {
     "admon": {
       "command": "npx",
-      "args": ["-y", "@admon/mcp-server"],
+      "args": ["-y", "@admon-protocol/mcp-server"],
       "env": {
         "ADMON_API_URL": "https://your-admon-domain.example",
         "ADMON_PUBLISHER_ADDRESS": "0xYourPublisherWallet",
@@ -127,7 +127,7 @@ The MCP package is prepared as `@admon/mcp-server` and declares a public npm pub
 }
 ```
 
-Until the package is published, use the source build above.
+The source build remains useful for local development and contributing changes.
 
 ## Deployment
 

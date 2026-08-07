@@ -1,5 +1,5 @@
 {
-  "name": "@admon/mcp-server",
+  "name": "@admon-protocol/mcp-server",
   "version": "0.1.0",
   "type": "module",
   "description": "AdMon MCP publisher connector for transparent sponsored offers on Monad",

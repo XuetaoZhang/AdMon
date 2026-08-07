@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "admon": {
-      "command": "node",
-      "args": ["mcp-server/dist/cli.js"],
+      "command": "npx",
+      "args": ["-y", "@admon-protocol/mcp-server"],
       "env": {
         "ADMON_API_URL": "https://ad-mon-web.vercel.app",
         "ADMON_PUBLISHER_ADDRESS": "0x33CF57293465C71430aa74a6CB3CbbA384FA4d3D",

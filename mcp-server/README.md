@@ -4,10 +4,10 @@ This MCP server runs locally in an agent host and calls the shared AdMon HTTP AP
 
 ## Install from npm
 
-After publishing the package, an MCP host can start it without cloning the repository:
+An MCP host can start the published package without cloning the repository:
 
 ```bash
-npx -y @admon/mcp-server
+npx -y @admon-protocol/mcp-server
 ```
 
 The package is configured with `ADMON_API_URL` and `ADMON_PUBLISHER_ADDRESS` environment variables in the host configuration.
@@ -19,7 +19,7 @@ The corresponding host entry is:
   "mcpServers": {
     "admon": {
       "command": "npx",
-      "args": ["-y", "@admon/mcp-server"],
+      "args": ["-y", "@admon-protocol/mcp-server"],
       "env": {
         "ADMON_API_URL": "https://your-admon.vercel.app",
         "ADMON_PUBLISHER_ADDRESS": "0xYourPublisherWallet",
@@ -36,7 +36,7 @@ The corresponding host entry is:
 git clone https://github.com/XuetaoZhang/AdMon.git
 cd AdMon
 npm ci
-npm run build --workspace @admon/mcp-server
+npm run build --workspace @admon-protocol/mcp-server
 ```
 
 Configure the host with the absolute path to `mcp-server/dist/cli.js`:

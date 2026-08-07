@@ -45,7 +45,7 @@ npm run dev --workspace @admon/web
 集成由两部分组成：
 
 1. **MCP 服务**：通过 stdio 提供 `get_ad_offer` 和 `get_click_status`，并调用共享的 AdMon HTTP API。
-2. **宿主策略/Skill**：要求 Agent 在本地提取相关关键词，在正常回答后调用 `get_ad_offer`，并把返回内容渲染为独立且明确披露的赞助卡片。不能把广告隐藏在回答正文中，也不能在真实点击回执之前声称奖励已经结算。
+2. **宿主策略/Skill**：要求 Agent 在本地提取相关关键词，在正常回答后调用 `get_ad_offer`，并把返回内容渲染为独立且明确披露的赞助卡片。
 
 仓库已经包含两个宿主所需的策略文件：
 
@@ -58,7 +58,7 @@ npm run dev --workspace @admon/web
 
 ```bash
 npm ci
-npm run build --workspace @admon/mcp-server
+npm run build --workspace @admon-protocol/mcp-server
 ```
 
 生成的入口文件是 `mcp-server/dist/cli.js`。`ADMON_API_URL` 应该填写公开的 AdMon 应用地址，而不是 MCP 宿主自己的 localhost：
@@ -109,14 +109,14 @@ codex mcp add admon \
 
 ### npm 发布方式
 
-MCP 包名已经准备为 `@admon/mcp-server`，并配置了公开 npm 发布信息。发布后，宿主可以直接使用：
+MCP 已发布为 `@admon-protocol/mcp-server`，宿主可以直接使用：
 
 ```json
 {
   "mcpServers": {
     "admon": {
       "command": "npx",
-      "args": ["-y", "@admon/mcp-server"],
+      "args": ["-y", "@admon-protocol/mcp-server"],
       "env": {
         "ADMON_API_URL": "https://your-admon-domain.example",
         "ADMON_PUBLISHER_ADDRESS": "0xYourPublisherWallet",
@@ -127,7 +127,7 @@ MCP 包名已经准备为 `@admon/mcp-server`，并配置了公开 npm 发布信
 }
 ```
 
-在包正式发布前，请使用上面的源码构建方式。
+源码构建方式仍适用于本地开发和参与贡献。
 
 ## 部署
 

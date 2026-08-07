@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "build:web": "npm run build --workspace @admon/contracts && npm run build --workspace @themoss/core && npm run build --workspace @admon/moss-protocol && npm run build --workspace @admon/web",
-    "build": "npm run build:web && npm run build --workspace @admon/mcp-server",
+    "build": "npm run build:web && npm run build --workspace @admon-protocol/mcp-server",
     "test": "npm run build --workspace @themoss/core && npm run test --workspace contracts && npm run test --workspace web && npm run test --workspace mcp-server && npm run test --workspace @themoss/core && npm run test --workspace @admon/moss-protocol",
     "test:contracts": "npm run test --workspace contracts"
   }

@@ -108,8 +108,8 @@ export default function Home() {
         <div className="code-panel">
           <div className="code-panel-title"><Code2 size={15} /> MCP configuration</div>
           <pre>{`"admon": {
-  "command": "node",
-  "args": ["mcp-server/dist/cli.js"],
+  "command": "npx",
+  "args": ["-y", "@admon-protocol/mcp-server"],
   "env": {
     "ADMON_API_URL": "https://your-admon.app",
     "ADMON_PUBLISHER_ADDRESS": "0x..."

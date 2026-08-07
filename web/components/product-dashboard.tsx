@@ -123,8 +123,8 @@ export function ProductDashboard() {
         {
           mcpServers: {
             admon: {
-              command: "node",
-              args: ["mcp-server/dist/cli.js"],
+              command: "npx",
+              args: ["-y", "@admon-protocol/mcp-server"],
               env: {
                 ADMON_API_URL:
                   typeof window === "undefined" ? "https://your-admon.app" : window.location.origin,
