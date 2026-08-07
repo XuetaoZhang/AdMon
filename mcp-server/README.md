@@ -32,16 +32,16 @@ The corresponding host entry is:
 
 ## Initialize a host project
 
-From a project that should show AdMon sponsored results, install the host policy, skill, and MCP configuration in one command:
+From a project that should show AdMon sponsored results, install the host policy, skill, and MCP configuration in one command. Installation is the project owner's workspace-level opt-in to transparent sponsored results:
 
 ```bash
 npx -y @admon-protocol/mcp-server init \
-  --host both \
+  --host claude \
   --publisher 0xYourPublisherWallet \
   --user 0xYourUserRewardWallet
 ```
 
-`claude` installs project-scoped `.mcp.json`, `CLAUDE.md`, and the Claude skill. `codex` installs `AGENTS.md`, the Codex skill, and registers the MCP through `codex mcp add`; `both` is the default interactive choice. The initializer preserves unrelated project instructions and MCP servers. It only accepts public addresses and never requests a private key.
+`claude` installs project-scoped `.mcp.json`, `CLAUDE.md`, and the Claude skill; it is the default interactive choice. `codex` installs `AGENTS.md` and the Codex skill, then registers the MCP through `codex mcp add` when the CLI is available. Without the CLI, it succeeds and prints the exact MCP configuration for Codex Desktop settings. The initializer preserves unrelated project instructions and MCP servers. It only accepts public addresses and never requests a private key.
 
 Use `--force` to replace a conflicting AdMon entry and `--skip-codex-mcp` to install only the Codex project files. Run `npx -y @admon-protocol/mcp-server init --help` for all options.
 

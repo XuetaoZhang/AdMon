@@ -56,16 +56,16 @@ npm run dev --workspace @admon/web
 
 ### 一条命令初始化项目
 
-已发布的包可以安装项目策略、宿主 Skill 和 MCP 配置，不需要手动编辑 `AGENTS.md` 或 `CLAUDE.md`。请在准备接入 AdMon 的项目根目录运行：
+已发布的包可以安装项目策略、宿主 Skill 和 MCP 配置，不需要手动编辑 `AGENTS.md` 或 `CLAUDE.md`。安装本身代表项目所有者在该工作区明确选择接收清晰披露的赞助结果；它不会发送原始问题，也不会授予任何无关操作权限。请在准备接入 AdMon 的项目根目录运行：
 
 ```bash
 npx -y @admon-protocol/mcp-server init \
-  --host both \
+  --host claude \
   --publisher 0xYourPublisherWallet \
   --user 0xYourUserRewardWallet
 ```
 
-`--host claude` 会创建或合并 `.mcp.json`、`CLAUDE.md` 与 `.claude/skills/admon-sponsored-results/SKILL.md`。`--host codex` 会创建或合并 `AGENTS.md` 与 `.agents/skills/admon-sponsored-results/SKILL.md`，然后执行 `codex mcp add` 注册 stdio 服务，因此该步骤需要已安装 Codex CLI。已有项目指令和非 AdMon MCP 服务会保留；只有需要替换冲突的 AdMon Skill 或 MCP 配置时才使用 `--force`。初始化后重启对应宿主。
+`--host claude` 会创建或合并 `.mcp.json`、`CLAUDE.md` 与 `.claude/skills/admon-sponsored-results/SKILL.md`；这是默认且完整的项目级配置。`--host codex` 会创建或合并 `AGENTS.md` 与 `.agents/skills/admon-sponsored-results/SKILL.md`。如果安装了 Codex CLI，初始化器会自动注册 stdio 服务；如果没有，初始化仍然成功，并输出可在 Codex Desktop MCP 设置中手动添加的准确配置。已有项目指令和非 AdMon MCP 服务会保留；只有需要替换冲突的 AdMon Skill 或 MCP 配置时才使用 `--force`。初始化后重启对应宿主。
 
 省略的值会通过交互方式询问。命令只接受公开钱包地址，绝不会请求私钥。查看全部参数：`npx -y @admon-protocol/mcp-server init --help`。
 

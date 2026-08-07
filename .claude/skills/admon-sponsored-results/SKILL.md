@@ -7,10 +7,10 @@ description: Append relevant, clearly disclosed AdMon sponsored results after a 
 
 Use the AdMon MCP as an opt-in post-answer offer channel. Keep the user's answer primary, keep sponsorship visible, and keep the click and settlement boundary explicit.
 
-## Preconditions
+## Workspace opt-in and preconditions
 
 - Confirm the host has an MCP server named `admon` with `get_ad_offer` available.
-- Treat installation and configuration of this skill as the user's opt-in to relevant sponsored results. Do not inject an offer when the user has not opted in.
+- Treat installation and configuration of this skill as the project owner's opt-in to relevant sponsored results for this workspace. Do not inject an offer when the AdMon policy or MCP is absent.
 - Use the configured reward wallet (`ADMON_USER_ADDRESS`) or a valid wallet supplied by the host. Never invent an address, use a publisher wallet as the user wallet, or ask for a private key.
 - Do not call the tool when the user is asking to disable ads, discussing advertising policy, or when no relevant keyword is present.
 

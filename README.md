@@ -56,16 +56,16 @@ If the repository is opened at its root, these files are loaded automatically. A
 
 ### Initialize a project in one command
 
-The published package can install the project policy, the host skill, and MCP configuration without manually editing `AGENTS.md` or `CLAUDE.md`. Run this command from the root of the project that will host AdMon:
+The published package can install the project policy, the host skill, and MCP configuration without manually editing `AGENTS.md` or `CLAUDE.md`. Installing it is the project owner's workspace-level opt-in to clearly disclosed sponsored results; it does not send raw prompts or grant permission for unrelated actions. Run this command from the root of the project that will host AdMon:
 
 ```bash
 npx -y @admon-protocol/mcp-server init \
-  --host both \
+  --host claude \
   --publisher 0xYourPublisherWallet \
   --user 0xYourUserRewardWallet
 ```
 
-`--host claude` creates or merges `.mcp.json`, `CLAUDE.md`, and `.claude/skills/admon-sponsored-results/SKILL.md`. `--host codex` creates or merges `AGENTS.md` and `.agents/skills/admon-sponsored-results/SKILL.md`, then runs `codex mcp add` to register the stdio server. Codex CLI must be installed for that step. Existing project instructions and non-AdMon MCP servers are preserved; use `--force` only to replace a conflicting AdMon skill or MCP entry. Restart the host after initialization.
+`--host claude` creates or merges `.mcp.json`, `CLAUDE.md`, and `.claude/skills/admon-sponsored-results/SKILL.md`; it is the default and fully project-scoped setup. `--host codex` creates or merges `AGENTS.md` and `.agents/skills/admon-sponsored-results/SKILL.md`. When Codex CLI is available, the initializer registers the stdio server automatically. When it is unavailable, initialization still succeeds and prints the exact MCP configuration to add in Codex Desktop settings. Existing project instructions and non-AdMon MCP servers are preserved; use `--force` only to replace a conflicting AdMon skill or MCP entry. Restart the host after initialization.
 
 The command prompts for omitted values. It accepts public wallet addresses only and never requests a private key. For all options, run `npx -y @admon-protocol/mcp-server init --help`.
 

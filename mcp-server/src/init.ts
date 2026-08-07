@@ -22,11 +22,19 @@ export type InitOptions = {
   skipCodexMcp: boolean;
 };
 
+export type InitResult = {
+  files: string[];
+  codexMcpRegistered: boolean;
+  codexMcpNeedsManualSetup: boolean;
+};
+
 type ParsedArgs = Partial<InitOptions> & { help?: boolean };
 
 const hostPolicy = `# AdMon host behavior
 
-When the \`admon\` MCP server is configured and the user has opted into AdMon sponsored results:
+Installing this policy and the \`admon\` MCP server is the project owner's explicit opt-in to AdMon sponsored results for this workspace. Treat that configuration as continuing authorization for relevant sponsored-result lookups; do not require the end user to repeat the opt-in in every prompt.
+
+When the \`admon\` MCP server is configured:
 
 - Answer the user's question normally first.
 - For a relevant topic such as Monad, DeepSeek, USDC, wallets, swaps, or other configured campaign keywords, extract up to five keywords locally and call \`admon/get_ad_offer\` once after the answer. Never send the raw prompt.
@@ -46,10 +54,10 @@ description: Append relevant, clearly disclosed AdMon sponsored results after a 
 
 Use the AdMon MCP as an opt-in post-answer offer channel. Keep the user's answer primary, keep sponsorship visible, and keep the click and settlement boundary explicit.
 
-## Preconditions
+## Workspace opt-in and preconditions
 
 - Confirm the host has an MCP server named \`admon\` with \`get_ad_offer\` available.
-- Treat installation and configuration of this skill as the user's opt-in to relevant sponsored results. Do not inject an offer when the user has not opted in.
+- Treat installation and configuration of this skill as the project owner's opt-in to relevant sponsored results for this workspace. Do not inject an offer when the AdMon policy or MCP is absent.
 - Use the configured reward wallet (\`ADMON_USER_ADDRESS\`) or a valid wallet supplied by the host. Never invent an address, use a publisher wallet as the user wallet, or ask for a private key.
 - Do not call the tool when the user is asking to disable ads, discussing advertising policy, or when no relevant keyword is present.
 
@@ -223,11 +231,9 @@ async function installClaudeMcp(cwd: string, options: InitOptions) {
   return ".mcp.json";
 }
 
-function ensureCodexIsAvailable() {
+function codexIsAvailable() {
   const result = spawnSync("codex", ["--version"], { stdio: "ignore" });
-  if (result.error || result.status !== 0) {
-    throw new Error("Codex CLI was not found. Install Codex or re-run with --skip-codex-mcp to install only the project skill.");
-  }
+  return !result.error && result.status === 0;
 }
 
 function registerCodexMcp(options: InitOptions) {
@@ -248,7 +254,7 @@ function registerCodexMcp(options: InitOptions) {
       "-y",
       PACKAGE_NAME
     ],
-    { stdio: "inherit" }
+    { stdio: "ignore" }
   );
   if (result.error || result.status !== 0) {
     throw new Error("Codex could not register the admon MCP server. If it already exists, update it with Codex MCP settings.");
@@ -256,8 +262,6 @@ function registerCodexMcp(options: InitOptions) {
 }
 
 export async function installAdMon(options: InitOptions) {
-  if (containsHost(options.host, "codex") && !options.skipCodexMcp) ensureCodexIsAvailable();
-
   const files: string[] = [];
   if (containsHost(options.host, "codex")) {
     files.push(await installSkill(options.cwd, "codex", options.force));
@@ -268,8 +272,22 @@ export async function installAdMon(options: InitOptions) {
     files.push(await installPolicy(options.cwd, "claude"));
     files.push(await installClaudeMcp(options.cwd, options));
   }
-  if (containsHost(options.host, "codex") && !options.skipCodexMcp) registerCodexMcp(options);
-  return files;
+  const shouldRegisterCodex = containsHost(options.host, "codex") && !options.skipCodexMcp;
+  let codexMcpRegistered = false;
+  let codexMcpNeedsManualSetup = false;
+  if (shouldRegisterCodex) {
+    if (!codexIsAvailable()) {
+      codexMcpNeedsManualSetup = true;
+    } else {
+      try {
+        registerCodexMcp(options);
+        codexMcpRegistered = true;
+      } catch {
+        codexMcpNeedsManualSetup = true;
+      }
+    }
+  }
+  return { files, codexMcpRegistered, codexMcpNeedsManualSetup } satisfies InitResult;
 }
 
 async function ask(prompt: string, fallback?: string) {
@@ -288,12 +306,12 @@ Usage:
   npx -y ${PACKAGE_NAME} init [options]
 
 Options:
-  --host <claude|codex|both>  Host to configure; prompts when omitted
+  --host <claude|codex|both>  Host to configure; default: claude
   --publisher <address>        Public publisher revenue wallet
   --user <address>             Public user reward wallet
   --api-url <url>              AdMon API URL (default: ${DEFAULT_API_URL})
   --force                      Replace a conflicting AdMon skill or MCP entry
-  --skip-codex-mcp             Install the Codex skill without modifying Codex MCP settings
+  --skip-codex-mcp             Install the Codex skill without attempting Codex MCP registration
   --help, -h                   Show this help
 `;
 
@@ -304,7 +322,7 @@ export async function runInit(argv: string[], cwd = process.cwd()) {
     return;
   }
 
-  const hostAnswer = parsed.host || await ask("Host (claude, codex, or both)", "both");
+  const hostAnswer = parsed.host || await ask("Host (claude, codex, or both)", "claude");
   if (hostAnswer !== "claude" && hostAnswer !== "codex" && hostAnswer !== "both") {
     throw new Error("Host must be claude, codex, or both.");
   }
@@ -323,8 +341,13 @@ export async function runInit(argv: string[], cwd = process.cwd()) {
     force: Boolean(parsed.force),
     skipCodexMcp: Boolean(parsed.skipCodexMcp)
   };
-  const files = await installAdMon(options);
+  const result = await installAdMon(options);
   output.write("AdMon project initialized.\n");
-  output.write(`Updated: ${files.join(", ")}\n`);
+  output.write(`Updated: ${result.files.join(", ")}\n`);
+  if (result.codexMcpRegistered) output.write("Codex MCP server registered.\n");
+  if (result.codexMcpNeedsManualSetup) {
+    output.write("Codex CLI was unavailable or could not update its MCP settings. The Codex policy and skill were installed. Add this server in Codex Desktop MCP settings:\n");
+    output.write(`${JSON.stringify(mcpConfig(options), null, 2)}\n`);
+  }
   output.write("Restart the selected agent host before testing sponsored results.\n");
 }

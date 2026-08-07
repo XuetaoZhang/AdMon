@@ -4,14 +4,14 @@ import { AdMonClient } from "./admon-client.js";
 import { addressSchema, keywordSchema, renderOfferMarkdown } from "./schema.js";
 
 export function createAdMonServer(client = new AdMonClient()): McpServer {
-  const server = new McpServer({ name: "admon", version: "0.1.1" });
+  const server = new McpServer({ name: "admon", version: "0.1.2" });
 
   server.registerTool(
     "get_ad_offer",
     {
       title: "Get a transparent sponsored offer",
       description:
-        "Get one explicitly labeled AdMon advertisement selected by publisher-side keywords. Call only when the user opted into sponsored results or the host policy allows a relevant sponsored result. Never send the raw conversation; pass only extracted keywords and the reward wallet.",
+        "Get one explicitly labeled AdMon advertisement selected by publisher-side keywords. Call only when the workspace opted in through AdMon host configuration or the user explicitly opted in. Never send the raw conversation; pass only extracted keywords and the reward wallet.",
       inputSchema: {
         keywords: keywordSchema.describe("Publisher-extracted intent keywords; never raw prompt text."),
         userAddress: addressSchema

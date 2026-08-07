@@ -1,6 +1,6 @@
 {
   "name": "@admon-protocol/mcp-server",
-  "version": "0.1.1",
+  "version": "0.1.3",
   "type": "module",
   "description": "AdMon MCP publisher connector for transparent sponsored offers on Monad",
   "license": "MIT",
