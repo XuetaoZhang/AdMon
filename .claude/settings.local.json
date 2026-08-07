@@ -1,0 +1,11 @@
+{
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "admon"
+  ],
+  "permissions": {
+    "allow": [
+      "mcp__admon__get_ad_offer"
+    ]
+  }
+}
